@@ -43,7 +43,7 @@ application works (there is no application yet).
 - [x] Phase 3 — Linux identity & admin function (VM build) — verified below
 - [x] Phase 4 — Flags & story (15 flags, encryption, manifest) — verified below
 - [x] Phase 5 — Privilege escalation — verified below
-- [ ] Phase 6 — Documentation (player + instructor)
+- [x] Phase 6 — Documentation (player + instructor) — verified below
 - [ ] Phase 7 — Integration testing
 - [ ] Phase 8 — Packaging
 
@@ -265,6 +265,33 @@ design, this reset script never does a blanket `/tmp` wipe.)
 - Original Flag 3's password (`BlueHarbor-99`) is confirmed distinct
   from any Linux account password, and from the final artifact's
   password (Flag 3's *decrypted value*, `SYN{git_ghost_61ace7b2}`).
+
+## Phase 6 — Documentation (DONE)
+
+Completed the remaining instructor-material placeholders and fixed one
+real inaccuracy found while reviewing:
+
+- `instructor-guide.md` — document map, intended-path summary, event
+  run checklist, known limitations, written from the actual build.
+- `troubleshooting.md` — the 4 real bugs hit during this build (cloud-
+  init admin/group collision, `scp -p` vs `-P`, glob-expansion-before-
+  sudo ordering, `-nographic`/`-daemonize` conflict) and their actual
+  fixes — not generic advice.
+- `security-review.md` — checked against the live VM: network isolation
+  (loopback-only hostfwd, no bridge), account isolation (`admin` has no
+  sudo, `root` login disabled, app never runs as root), flag/credential
+  hygiene (no real orgs/people, no homemade crypto, no decoy/genuine
+  collision), and a live `ss -tlnp` listening-service check (only SSH +
+  the app, nothing unexpected). One honest gap flagged: multi-host lab
+  networking hasn't been tested, only single-host loopback.
+- `build-guide.md` updated to include the Phase 4/5 steps
+  (`author_flags.py`, `validate-flags.sh`, `deploy-flags.sh`,
+  `reset-privesc.sh`) that didn't exist when it was first written.
+- Fixed a real inaccuracy in `player-material/Getting-Started.md`: it
+  told players to expect an SSH client for their eventual shell, but
+  the intended path never gives players SSH access — they get a shell
+  via the command-injection vulnerability itself. Corrected to describe
+  setting up a listener instead.
 
 ## Outstanding items requiring the project owner
 

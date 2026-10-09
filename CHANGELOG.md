@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Phase 6 — Documentation
+- Wrote `instructor-guide.md`, `troubleshooting.md`, `security-review.md`
+  from the real build (not generic placeholders).
+- Updated `build-guide.md` with the Phase 4/5 steps.
+- Fixed `player-material/Getting-Started.md`: players never get SSH
+  access (corrected from an earlier placeholder assumption); they get a
+  shell via the command-injection path and need a listener, not an SSH
+  client.
+- Live-verified listening services on the VM (`ss -tlnp`): only SSH and
+  the app, nothing unexpected.
+
 ### Phase 5 — Privilege escalation
 - Added the one intentional privesc weakness: a root cron job
   (`/etc/cron.d/admin-tools-cleanup`) running a script

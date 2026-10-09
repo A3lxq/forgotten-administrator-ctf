@@ -24,8 +24,12 @@
 - `git` for Stage 3 — `git log`, `git show`, `git log --diff-filter=D`
   are your friends.
 - A web browser or `curl` for Stage 4.
-- An SSH client, for once you have a shell (your instructor will tell
-  you the lab's host/port).
+- A listener (e.g. `nc -lvnp <port>`) for when you get a shell back
+  from the server — you are not given SSH access to this box at any
+  point; the intended path is to make the application give you a shell.
+  Ask your instructor which address the server can reach your listener
+  on — it is usually **not** `127.0.0.1` from the server's own point of
+  view.
 
 ## Where to start
 

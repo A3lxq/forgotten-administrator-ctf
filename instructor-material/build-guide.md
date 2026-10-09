@@ -58,8 +58,23 @@ ssh -i keys/ctfbuilder_ed25519 -p 2222 -o StrictHostKeyChecking=no \
 ```
 Idempotent — copies `app/` into the VM, builds/updates its venv, writes
 and (re)starts the `forgotten-admin.service` systemd unit (runs as the
-Linux **admin** account), and lays out `/home/admin` per Section 11. Safe
-to re-run after any app change.
+Linux **admin** account), lays out `/home/admin` per Section 11, and
+installs the Phase 5 privilege-escalation weakness
+(`/opt/admin-tools/cleanup.sh` + its root cron job). Safe to re-run
+after any app change.
+
+## Build and deploy the flags
+
+```
+cd ..                                   # back to project root
+app/.venv/bin/python3 scripts/author_flags.py
+./scripts/validate-flags.sh             # should print "RESULT: all checks passed"
+cd vm
+./scripts/deploy-flags.sh               # pushes Stage 4/5 artifacts onto the VM
+```
+`author_flags.py` is the single source of truth for all 15 flags; it
+regenerates `challenge-data/` and `instructor-material/flag-manifest.json`.
+Re-run it (then `deploy-flags.sh`) any time a flag value changes.
 
 ## Verify
 
@@ -70,9 +85,13 @@ ssh -i keys/ctfbuilder_ed25519 -p 2222 -o StrictHostKeyChecking=no \
     'systemctl is-active forgotten-admin && ps -o user= -C python3'
 ```
 Expect `{"status":"ok"}` and the app process owned by `admin`, not root.
+For the full exploit chain and permission-boundary checks, see
+`solution-walkthrough.md` and `security-review.md`.
 
 ## Stop / snapshot / reset
 
-See `reset-guide.md` once Phase 5 adds the privilege-escalation
-mechanism (snapshotting matters most once there's per-team state to roll
-back).
+See `reset-guide.md`. In short: `./scripts/stop-vm.sh` /
+`./scripts/boot-vm.sh` to start/stop,
+`./scripts/reset-privesc.sh` to reset just the Stage 5 weakness, and
+`qemu-img snapshot` on `disks/forgotten-admin.qcow2` for a full clean
+restore between teams.
