@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Phase 5 — Privilege escalation
+- Added the one intentional privesc weakness: a root cron job
+  (`/etc/cron.d/admin-tools-cleanup`) running a script
+  (`/opt/admin-tools/cleanup.sh`) that's group-writable by `admin`.
+- Added `vm/scripts/reset-privesc.sh` to restore the clean state and
+  clear known exploit artifacts between teams.
+- Added `instructor-material/privesc-design.md` and
+  `instructor-material/reset-guide.md`.
+- Updated Stage 5 hints and the solution walkthrough to match.
+- Performed a real, live `admin` → root privilege escalation on the VM
+  with zero instructor assistance, recovered Original Flag 5, and
+  verified the reset script restores the clean state afterward.
+
 ### Phase 4 — Flags & story
 - Added `challenge-data/tools/flagcrypto.py` (scrypt + AES-256-GCM,
   ships to players) and `scripts/author_flags.py` (single source of

@@ -52,12 +52,12 @@
 
 ## Stage 5 — Linux privilege escalation
 
-*(Hints added once Phase 5 implements the mechanism.)*
-
-1. Check who you are and what you can do as that account.
-2. Look at what runs automatically, and who owns the things it depends
-   on.
-3. *(TBD — Phase 5)*
+1. Check who you are, what groups you're in, and what runs
+   automatically on this box (not just what you can run yourself).
+2. Look at `/etc/cron.d/` — something there runs as root. What file
+   does it execute, and who can write to *that* file?
+3. `/opt/admin-tools/cleanup.sh` is group-writable by `admin` — you're
+   in that group. Anything you add to it runs as root within a minute.
 
 ## Final artifact
 

