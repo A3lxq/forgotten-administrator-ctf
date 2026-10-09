@@ -11,6 +11,9 @@ vm/*.qcow2
 vm/*.img
 vm/*.iso
 vm/seed/
+vm/images/
+vm/disks/
+vm/keys/
 .env
 *.pem
 *.key

@@ -1,0 +1,63 @@
+#cloud-config
+# First-boot configuration for "The Forgotten Administrator" CTF VM.
+# This file only establishes accounts, packages, and SSH policy. The
+# actual application deployment, directory layout, and permissions are
+# applied afterwards by vm/scripts/provision.sh (idempotent, re-runnable,
+# and easier to review/change than a giant cloud-init blob).
+
+hostname: forgotten-admin
+manage_etc_hosts: true
+
+# Disable the cloud image's normal default user; every account below is
+# explicit and intentional.
+users:
+  - name: ctfbuilder
+    gecos: "CTF instructor build/maintenance account"
+    groups: [sudo]
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIyIOodU2saxIknGotZRUguaCn5om44Eruqr+57u/V3G ctf-instructor-build-key"
+
+  - name: john
+    gecos: "John (developer, departed)"
+    shell: /bin/bash
+    lock_passwd: false
+    passwd: "$6$johnsalt1$zdikRzvZJveWGrFtHrSowt/p/aD40KPviuGRORy3P4IxDDekKvXnaoXs5EpdkQbN8ZFo4D0r9jBo8fLgu1ADE."
+
+  - name: admin
+    gecos: "Linux admin account (runs the internal web application)"
+    shell: /bin/bash
+    lock_passwd: false
+    passwd: "$6$adminsalt1$3kVAsk2B4DAolBCDh7QQsege92yjlYU.V.Fg8P.OmSCkQsTFaq4rl1/I0xXrioS36L1.kRep2EsFzQtwELc0S/"
+    # Ubuntu's cloud image already has a system group called "admin";
+    # without this, useradd tries to create a new private group named
+    # "admin" and collides with it. Reuse the existing group instead.
+    no_user_group: true
+    primary_group: admin
+
+chpasswd:
+  expire: false
+
+# Only the instructor's key-based ctfbuilder account can use SSH.
+# john/admin have local console passwords (set above) for completeness,
+# but cannot reach this box over SSH with a password — the intended
+# route from "no access" to an admin shell is the web application's
+# vulnerabilities (Phase 2), not SSH.
+ssh_pwauth: false
+disable_root: true
+
+package_update: true
+package_upgrade: false
+packages:
+  - python3
+  - python3-venv
+  - python3-pip
+  - iputils-ping
+  - rsync
+
+# Nothing else happens at first boot. vm/scripts/provision.sh does the
+# rest once the instructor confirms the VM is reachable over SSH.
+runcmd:
+  - [bash, -c, "echo 'cloud-init base config applied' > /var/log/forgotten-admin-cloudinit.log"]

