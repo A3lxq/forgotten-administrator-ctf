@@ -1,5 +1,168 @@
 {
-  "_status": "PLACEHOLDER — populated in Phase 4",
-  "_warning": "Private. Contains genuine flag plaintext/ciphertext references. Never place under app/static, app/templates, challenge-data served paths, or player-material.",
-  "flags": []
+  "_warning": "PRIVATE. Never place under app/static, app/templates, challenge-data served paths, or player-material.",
+  "totals": {
+    "genuine": 5,
+    "decoys": 10,
+    "genuine_encrypted": 3,
+    "decoy_encrypted": 5,
+    "max_score": 800
+  },
+  "locations": {
+    "stage1_dir": "challenge-data/stage1-osint",
+    "stage2_dir": "challenge-data/stage2-metadata",
+    "stage3_dir": "challenge-data/stage3-git-history",
+    "vm_staging_dir": "vm/flag-staging"
+  },
+  "flags": [
+    {
+      "id": "original_flag_1",
+      "classification": "genuine",
+      "stage": "1-osint",
+      "points": 100,
+      "encrypted": false,
+      "value": "SYN{osint_fingerprint_f0c73a91}",
+      "password": null,
+      "decryption_method": "plaintext, no decryption needed"
+    },
+    {
+      "id": "original_flag_2",
+      "classification": "genuine",
+      "stage": "2-metadata",
+      "points": 100,
+      "encrypted": false,
+      "value": "SYN{exif_breadcrumb_8d12ff04}",
+      "password": null,
+      "decryption_method": "plaintext, no decryption needed"
+    },
+    {
+      "id": "original_flag_3",
+      "classification": "genuine",
+      "stage": "3-git-crypto",
+      "points": 150,
+      "encrypted": true,
+      "value": "SYN{git_ghost_61ace7b2}",
+      "password": "BlueHarbor-99",
+      "decryption_method": "flagcrypto.py decrypt <password> <file> - (scrypt KDF + AES-256-GCM)"
+    },
+    {
+      "id": "original_flag_4",
+      "classification": "genuine",
+      "stage": "4-web-idor-admin",
+      "points": 200,
+      "encrypted": true,
+      "value": "SYN{admin_blindspot_9f4e2c18}",
+      "password": "oldhandoff-rotate-2024",
+      "decryption_method": "flagcrypto.py decrypt <password> <file> - (scrypt KDF + AES-256-GCM)"
+    },
+    {
+      "id": "original_flag_5",
+      "classification": "genuine",
+      "stage": "5-privesc-root",
+      "points": 250,
+      "encrypted": true,
+      "value": "SYN{root_of_all_evidence_3b7d55a0}",
+      "password": "SYN{git_ghost_61ace7b2}",
+      "decryption_method": "flagcrypto.py decrypt <password> <file> - (scrypt KDF + AES-256-GCM)"
+    },
+    {
+      "id": "d1a",
+      "classification": "decoy",
+      "stage": "1-osint",
+      "points": 0,
+      "encrypted": false,
+      "value": "FFLAG:old_profile_rev1_55c2",
+      "password": null,
+      "decryption_method": "plaintext, no decryption needed"
+    },
+    {
+      "id": "d1b",
+      "classification": "decoy",
+      "stage": "1-osint",
+      "points": 0,
+      "encrypted": true,
+      "value": "FFLAG:deprecated_repo_link_a913",
+      "password": "legacyKey2016",
+      "decryption_method": "flagcrypto.py decrypt <password> <file> - (scrypt KDF + AES-256-GCM)"
+    },
+    {
+      "id": "d2a",
+      "classification": "decoy",
+      "stage": "2-metadata",
+      "points": 0,
+      "encrypted": false,
+      "value": "FFLAG:camera_test_shot_2017_cc41",
+      "password": null,
+      "decryption_method": "plaintext, no decryption needed"
+    },
+    {
+      "id": "d2b",
+      "classification": "decoy",
+      "stage": "2-metadata",
+      "points": 0,
+      "encrypted": true,
+      "value": "FFLAG:draft_scan_metadata_77b0",
+      "password": "scanpass2017",
+      "decryption_method": "flagcrypto.py decrypt <password> <file> - (scrypt KDF + AES-256-GCM)"
+    },
+    {
+      "id": "d3a",
+      "classification": "decoy",
+      "stage": "3-git-crypto",
+      "points": 0,
+      "encrypted": false,
+      "value": "FFLAG:legacy_test_flag_2018_3f09",
+      "password": null,
+      "decryption_method": "plaintext, no decryption needed"
+    },
+    {
+      "id": "d3b",
+      "classification": "decoy",
+      "stage": "3-git-crypto",
+      "points": 0,
+      "encrypted": true,
+      "value": "FFLAG:rotated_out_jan_2019_e2a4",
+      "password": "old-wifi-2018",
+      "decryption_method": "flagcrypto.py decrypt <password> <file> - (scrypt KDF + AES-256-GCM)"
+    },
+    {
+      "id": "d4a",
+      "classification": "decoy",
+      "stage": "4-web-idor-admin",
+      "points": 0,
+      "encrypted": false,
+      "value": "FFLAG:ticket_closed_wontfix_19d7",
+      "password": null,
+      "decryption_method": "plaintext, no decryption needed"
+    },
+    {
+      "id": "d4b",
+      "classification": "decoy",
+      "stage": "4-web-idor-admin",
+      "points": 0,
+      "encrypted": true,
+      "value": "FFLAG:backup_pre_rotation_88c5",
+      "password": "prerotate-2023",
+      "decryption_method": "flagcrypto.py decrypt <password> <file> - (scrypt KDF + AES-256-GCM)"
+    },
+    {
+      "id": "d5a",
+      "classification": "decoy",
+      "stage": "5-privesc-root",
+      "points": 0,
+      "encrypted": false,
+      "value": "FFLAG:old_root_memo_4b61",
+      "password": null,
+      "decryption_method": "plaintext, no decryption needed"
+    },
+    {
+      "id": "d5b",
+      "classification": "decoy",
+      "stage": "5-privesc-root",
+      "points": 0,
+      "encrypted": true,
+      "value": "FFLAG:old_root_snapshot_f02e",
+      "password": "SnapshotKey-2023",
+      "decryption_method": "flagcrypto.py decrypt <password> <file> - (scrypt KDF + AES-256-GCM)"
+    }
+  ]
 }

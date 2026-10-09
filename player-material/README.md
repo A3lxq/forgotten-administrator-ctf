@@ -1,16 +1,16 @@
 # The Forgotten Administrator — Player Pack
 
-> **Status: PLACEHOLDER.** This file will be completed in Phase 6, once the
-> application, flags, and VM exist and have been tested. Do not distribute
-> this pack until PROJECT-STATUS.md marks Phase 6 and Phase 7 as DONE.
+A story-driven Linux CTF: OSINT → file metadata → Git history and
+cryptography → a vulnerable web application → a Linux admin shell →
+privilege escalation → a final, root-protected, encrypted artifact.
 
-This will contain:
-- What this challenge is and who it's for.
-- The authorized scope of the lab (this VM only).
-- How to connect (VM IP/ports, once assigned).
-- How flags are scored.
-- Where to find `Story.md`, `Rules.md`, `Getting-Started.md`, and
-  `Flag-Submission.md`.
+Read in this order:
 
-No flag values, credentials, or solution steps belong in this directory at
-any point.
+1. [`Story.md`](Story.md) — what's going on and who these people are.
+2. [`Rules.md`](Rules.md) — scope and conduct.
+3. [`Getting-Started.md`](Getting-Started.md) — what you're given and
+   where to start.
+4. [`Flag-Submission.md`](Flag-Submission.md) — flag format and scoring.
+
+There are 5 real flags (800 points total) and 10 decoys (0 points, but
+genuinely findable — not bugs). Good luck.

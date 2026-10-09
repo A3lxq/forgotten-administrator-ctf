@@ -22,7 +22,7 @@ VENV="$APP_DIR/app/.venv"
 
 echo "== Installing OS packages =="
 sudo apt-get update -qq
-sudo apt-get install -y -qq python3-venv python3-pip >/dev/null
+sudo apt-get install -y -qq python3-venv python3-pip python3-cryptography >/dev/null
 
 echo "== Laying out $APP_DIR =="
 sudo mkdir -p "$APP_DIR"

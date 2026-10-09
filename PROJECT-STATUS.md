@@ -41,7 +41,7 @@ application works (there is no application yet).
 - [x] Phase 1 — Skeleton (this commit) — directories, docs, scripts, venv, test framework verified
 - [x] Phase 2 — Application (Flask app, seeded users, IDOR, admin command injection, tests) — verified below
 - [x] Phase 3 — Linux identity & admin function (VM build) — verified below
-- [ ] Phase 4 — Flags & story (15 flags, encryption, manifest)
+- [x] Phase 4 — Flags & story (15 flags, encryption, manifest) — verified below
 - [ ] Phase 5 — Privilege escalation
 - [ ] Phase 6 — Documentation (player + instructor)
 - [ ] Phase 7 — Integration testing
@@ -147,6 +147,79 @@ not `ctfbuilder`) — no leftover test artifacts.
 **Not yet true:** no privilege-escalation mechanism exists yet (Phase 5)
 — `admin` currently has no path to `root` at all, which is correct for
 this phase. No flags are placed yet (Phase 4).
+
+## Phase 4 — Flags & story (DONE, verified)
+
+Built via `scripts/author_flags.py` (single source of truth) +
+`scripts/validate_flags.py` (`./scripts/validate-flags.sh`):
+
+- **15 unique flags**: 5 genuine (`SYN{...}`, 800 points total:
+  100/100/150/200/250), 10 decoys (`FFLAG:...`, 0 points).
+- **Encryption distribution exactly per spec**: genuine flags 1-2
+  plaintext, 3-5 encrypted (3 total); decoys 5 plaintext + 5 encrypted
+  (8 encrypted overall).
+- **Crypto**: `challenge-data/tools/flagcrypto.py` — scrypt (password
+  KDF) + AES-256-GCM (authenticated encryption), via the `cryptography`
+  library. Not homemade. This exact file ships to players (no secrets
+  in it) and is also installed on the VM at `/opt/tools/flagcrypto.py`
+  (system `python3-cryptography` package, usable by any account).
+- **Stage content**: `challenge-data/stage1-osint/` (profile + project
+  page), `stage2-metadata/` (3 PNGs with real EXIF via `exiftool`),
+  `stage3-git-history/` (a real nested git repo, 4 commits, with the
+  flag3/decoy3b ciphertext + passphrase notes deliberately removed from
+  the current working tree but recoverable via `git show`).
+- **Stage 4/5 artifacts deployed onto the live VM** via
+  `vm/scripts/deploy-flags.sh`: `/home/admin/evidence/`,
+  `/home/admin/flags/` (admin:admin, mode 640), `/root/` (root:root,
+  mode 600).
+- **Flag 5's password is Flag 3's decrypted plaintext value** (not
+  Flag 3's own password, not any Linux password) — exactly per spec
+  Section 13.
+
+**A real bug found and fixed during this phase:** `deploy-flags.sh`'s
+`chmod 640 /home/admin/evidence/*` initially failed ("No such file or
+directory") even though the files existed. Root cause: shell glob
+expansion for `*` happens in the *calling* (ctfbuilder) shell, before
+`sudo` escalates — and ctfbuilder can't read that 750 `admin`-owned
+directory to expand the glob. Fixed by moving the glob expansion inside
+`sudo bash -c '...'` so it runs as root.
+
+**`./scripts/validate-flags.sh` output (all passed):**
+```
+[ OK ] exactly 5 genuine flags (5)
+[ OK ] exactly 10 decoy flags (10)
+[ OK ] 3 genuine flags encrypted (3)
+[ OK ] 5 decoy flags encrypted (5)
+[ OK ] all 15 flag values are unique
+[ OK ] all genuine flags use the SYN{...} format
+[ OK ] all decoy flags use the FFLAG:... format
+[ OK ] no decoy value matches a genuine value
+[ OK ] max score == 800 (800)
+[ OK ] all decoys award 0 points
+[ OK ] original_flag_3/4/5: decrypt correctly + reject wrong password
+[ OK ] d3b/d4b/d5b: decrypt correctly + reject wrong password
+RESULT: all checks passed
+```
+(`d1b`/`d2b` are embedded in HTML/image media rather than standalone
+files; both were manually decrypted and confirmed correct in this
+session — see terminal output in this phase's work, not re-run by the
+automated validator.)
+
+**Live, full chain re-verified on the actual VM after deployment:**
+`john` login → IDOR on `/records/2` → admin credential disclosure →
+admin login → command injection as Linux `admin` → read
+`/home/admin/evidence/decrypt_notes.txt` → decrypt
+`original_flag_4.enc` → `SYN{admin_blindspot_9f4e2c18}`. Separately
+(simulating post-privesc access via `sudo`, since Phase 5 doesn't exist
+yet): decrypt `/root/final_evidence.enc` with Flag 3's plaintext →
+`SYN{root_of_all_evidence_3b7d55a0}`. `admin` confirmed unable to read
+`/root` at all.
+
+**Not yet true:** no privilege-escalation mechanism exists (Phase 5) —
+the final-artifact decrypt above was performed via instructor `sudo`,
+not by a player actually escalating from `admin` to `root`. Player and
+instructor docs updated to match the real implementation, but Stage 5's
+hint-sheet entries are still placeholders pending Phase 5.
 
 ## Outstanding items requiring the project owner
 

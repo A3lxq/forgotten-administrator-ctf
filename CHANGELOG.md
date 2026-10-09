@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Phase 4 — Flags & story
+- Added `challenge-data/tools/flagcrypto.py` (scrypt + AES-256-GCM,
+  ships to players) and `scripts/author_flags.py` (single source of
+  truth for all 15 flags, generates all stage content + the manifest).
+- Built Stage 1 (OSINT profile/project pages), Stage 2 (3 PNGs with
+  real EXIF metadata), Stage 3 (a real nested git repo with recoverable
+  deleted history) under `challenge-data/`.
+- Added `vm/scripts/deploy-flags.sh` to push Stage 4/5 artifacts onto
+  the VM with correct ownership/permissions; fixed a sudo/glob-ordering
+  bug found while testing it.
+- Added `scripts/validate_flags.py` / `scripts/validate-flags.sh` — the
+  real local flag-validation utility (counts, encryption distribution,
+  uniqueness, format, scoring, actual decrypt + wrong-password-reject
+  checks). All checks pass.
+- Updated player-material (Story, Getting-Started, Flag-Submission,
+  Rules, README) and instructor-material (scoring-guide, hint-sheet,
+  solution-walkthrough) to match the real implementation.
+- Re-verified the full exploit chain against the live VM after
+  deployment, including both genuine and decoy decryptions.
+
 ### Phase 3 — Linux identity & VM build
 - Downloaded and checksum-verified the Ubuntu 24.04 LTS cloud image.
 - Added `vm/cloud-init/` (user-data.yaml, meta-data.yaml), `vm/scripts/`

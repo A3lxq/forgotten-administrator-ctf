@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
-# validate-flags.sh — PLACEHOLDER (Phase 1 skeleton).
-# Not implemented yet. Will be filled in during the phase noted below.
-# Exits non-zero and says so rather than silently doing nothing, so it
-# can never be mistaken for a passing step.
+# validate-flags.sh — instructor-only. Runs the real flag validation
+# utility (Section 18): counts, encryption distribution, uniqueness,
+# format, scoring, and actual decrypt/reject-wrong-password checks.
 set -euo pipefail
-echo "validate-flags.sh is not implemented yet (planned for a later phase)." >&2
-echo "See PROJECT-STATUS.md for current phase status." >&2
-exit 2
+cd "$(dirname "$0")/.."
+
+if [ ! -x app/.venv/bin/python3 ]; then
+  echo "app/.venv is missing. See DEPENDENCIES.md." >&2
+  exit 2
+fi
+
+app/.venv/bin/python3 scripts/validate_flags.py
