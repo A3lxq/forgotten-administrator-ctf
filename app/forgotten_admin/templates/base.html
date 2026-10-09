@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Internal Tools{% endblock %}</title>
+</head>
+<body>
+  <header>
+    <strong>Internal Tools</strong>
+    {% if g.user %}
+      — logged in as {{ g.user["username"] }}
+      (<a href="{{ url_for('auth.logout') }}">logout</a>)
+    {% endif %}
+  </header>
+  <hr>
+  {% block content %}{% endblock %}
+</body>
+</html>

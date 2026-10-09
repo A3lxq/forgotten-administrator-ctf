@@ -39,13 +39,59 @@ application works (there is no application yet).
 
 - [x] Phase 0 — Environment & plan
 - [x] Phase 1 — Skeleton (this commit) — directories, docs, scripts, venv, test framework verified
-- [ ] Phase 2 — Application (Flask app, seeded users, IDOR, tests)
+- [x] Phase 2 — Application (Flask app, seeded users, IDOR, admin command injection, tests) — verified below
 - [ ] Phase 3 — Linux identity & admin vulnerability (VM build)
 - [ ] Phase 4 — Flags & story (15 flags, encryption, manifest)
 - [ ] Phase 5 — Privilege escalation
 - [ ] Phase 6 — Documentation (player + instructor)
 - [ ] Phase 7 — Integration testing
 - [ ] Phase 8 — Packaging
+
+## Phase 2 — Application (DONE, verified)
+
+Implemented `app/forgotten_admin/` (Flask app, SQLite via stdlib `sqlite3`):
+
+- Seeded web identities: `john` (normal), `admin` (app-admin) — **web
+  identities only**, not the Linux OS accounts (those come in Phase 3).
+- `records.py`: `/records/<id>` — **intentional IDOR**: checks login but
+  not ownership. John can read admin's record by changing the id.
+- `admin.py`: `/admin/diagnostics` — admin-only "ping a host" tool with an
+  **intentional OS command injection** (string-built shell command,
+  `shell=True`, no input validation). Gated by `admin_required`, so a
+  normal user needs the admin's credentials to reach it at all.
+- The admin's record (the "administrative resource") contains the
+  seeded admin web password and points to `/admin/diagnostics` — this is
+  the IDOR disclosure that lets a player pivot from `john` to `admin`.
+- `db.py seed_db()` is idempotent (checked by test, see below).
+- Chosen VM guest OS for Phase 3 (per owner discussion): **Ubuntu Server
+  24.04 LTS** cloud image, via QEMU/KVM + cloud-init.
+
+**Tests run and observed** (`./scripts/run-tests.sh`):
+```
+15 passed in 4.27s
+```
+Including, specifically:
+- `test_john_can_access_own_record` — PASSED
+- `test_john_can_access_admin_record_via_idor` — PASSED (proves the IDOR
+  as designed: john reads admin's record and sees the admin credential +
+  diagnostics pointer)
+- `test_diagnostics_requires_admin_role` — PASSED (john, even without
+  admin credentials, gets 403)
+- `test_diagnostics_command_injection` — PASSED (a `; touch <marker>`
+  payload in the `host` field creates the marker file — non-destructive,
+  scoped to pytest's own tmp_path, no network listener opened)
+- `test_seed_is_idempotent` — PASSED (seeding twice doesn't duplicate
+  users/records)
+
+Also manually smoke-tested outside pytest (direct Flask test client calls):
+`/healthz` → 200, login → redirect, `/records/2` as john → 200 with
+admin's content. Matches automated test results.
+
+**Not yet true, and not claimed:** the command injection does NOT yet
+produce a real reverse shell as a Linux `admin` OS user — there is no VM
+yet. That wiring (sudoers rule invoking this same code path as the Linux
+`admin` account, plus a documented reverse-shell workflow against the
+isolated lab network) is Phase 3.
 
 ## Outstanding items requiring the project owner
 

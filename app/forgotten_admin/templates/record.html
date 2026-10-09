@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Record #{{ record["id"] }}{% endblock %}
+{% block content %}
+  <h1>{{ record["title"] }}</h1>
+  <p><em>Owner: {{ record["owner"] }} (record id {{ record["id"] }})</em></p>
+  <pre>{{ record["body"] }}</pre>
+{% endblock %}

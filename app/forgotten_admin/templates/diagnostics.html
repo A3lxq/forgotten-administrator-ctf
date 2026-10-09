@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Network Diagnostics{% endblock %}
+{% block content %}
+  <h1>Network Diagnostics</h1>
+  <p>Check connectivity from this server to an internal host.</p>
+  <form method="post">
+    <label>Host <input name="host" value="{{ target }}"></label>
+    <button type="submit">Ping</button>
+  </form>
+  {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+  {% if output is not none %}<pre>{{ output }}</pre>{% endif %}
+{% endblock %}
