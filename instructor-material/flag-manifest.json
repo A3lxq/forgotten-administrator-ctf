@@ -1,0 +1,5 @@
+{
+  "_status": "PLACEHOLDER — populated in Phase 4",
+  "_warning": "Private. Contains genuine flag plaintext/ciphertext references. Never place under app/static, app/templates, challenge-data served paths, or player-material.",
+  "flags": []
+}

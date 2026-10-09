@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+*.db
+*.db-journal
+instance/
+logs/*.log
+vm/*.qcow2
+vm/*.img
+vm/*.iso
+vm/seed/
+.env
+*.pem
+*.key
