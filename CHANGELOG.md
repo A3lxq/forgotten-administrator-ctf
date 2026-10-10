@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Addendum — self-contained player materials
+- New `materials.py` blueprint serves Stage 1-3 content directly from
+  the app, unauthenticated, at `/materials/` — no separate handout
+  folder needed to play. `/` is now a public landing page.
+- `author_flags.py` now also builds `stage3-git-history.tar.gz` for
+  download (players can't live-clone the raw repo over HTTP).
+- Fixed a real bug: `remote-provision.sh`'s `systemctl enable --now`
+  silently never restarted an already-running service on
+  code/config changes. Now does `enable` + unconditional `restart`.
+- 9 new tests (`test_materials.py`), including path-traversal
+  rejection. `health-check.sh` extended with 2 related checks.
+- Built a real standards-based OVA (`vm/scripts/export-ova.sh`,
+  qemu-img + hand-written OVF, no VirtualBox/VMware needed to build
+  it) and pushed the project to a private GitHub repo with the OVA
+  attached as a release asset for cross-machine import testing.
+
 ### Phase 8 — Packaging
 - Finished `scripts/build.sh`, `health-check.sh`, `reset.sh` (previously
   Phase-1 placeholders) as real orchestrators over the VM scripts.

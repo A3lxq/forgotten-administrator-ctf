@@ -20,6 +20,7 @@ dist/
 # Generated, standalone nested git repo (players investigate ITS history
 # directly) -- reproducible via scripts/author_flags.py, not tracked here.
 challenge-data/stage3-git-history/
+challenge-data/stage3-git-history.tar.gz
 .env
 *.pem
 *.key

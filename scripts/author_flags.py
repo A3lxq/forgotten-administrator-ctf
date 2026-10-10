@@ -220,7 +220,18 @@ def build_stage3_git() -> dict:
     git("add", "-A")
     git("commit", "-q", "-m", "Clean up stale backup files")
 
-    return {"stage3_dir": str(d.relative_to(ROOT))}
+    # Also publish a downloadable archive (players can't `git clone` a
+    # live repo through the web app's materials blueprint -- they
+    # download this, extract it, and run git locally against it).
+    import tarfile
+
+    archive_path = CHALLENGE / "stage3-git-history.tar.gz"
+    if archive_path.exists():
+        archive_path.unlink()
+    with tarfile.open(archive_path, "w:gz") as tf:
+        tf.add(d, arcname="stage3-git-history")
+
+    return {"stage3_dir": str(d.relative_to(ROOT)), "stage3_archive": str(archive_path.relative_to(ROOT))}
 
 
 def build_stage4_and_5_artifacts() -> dict:

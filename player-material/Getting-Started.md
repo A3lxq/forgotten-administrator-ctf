@@ -2,21 +2,28 @@
 
 ## What you're given
 
-1. **A folder of handover material** (`challenge-data/` — your instructor
-   will tell you how it's shared with you): John's old profile page and
-   project page, a few photos from the handover, and a copy of the
-   `ledger-tools` Git repository. All of this is self-contained — you
-   don't need internet access to investigate any of it.
-2. **A decrypt tool**, `flagcrypto.py`, in that same folder's `tools/`
-   subdirectory. Whenever you find something encrypted, this is what
-   decrypts it, once you have the right password:
+Just one thing: the address of the web application (your instructor
+will give you this, e.g. `http://<lab-ip>:8080/`). Everything else is
+reachable from there — nothing needs to be separately downloaded,
+emailed, or handed to you on a drive.
+
+1. **The landing page** (`/`) links to the handover material: John's
+   old profile page and project page, a few photos from the handover,
+   a downloadable copy of the `ledger-tools` Git repository, and the
+   decrypt tool you'll need. All of it is served directly by the box —
+   `/materials/`.
+2. **The decrypt tool**, `flagcrypto.py` (linked from `/materials/`).
+   Whenever you find something encrypted, this is what decrypts it,
+   once you have the right password:
    ```
-   python3 tools/flagcrypto.py decrypt "<password>" <file> -
+   python3 flagcrypto.py decrypt "<password>" <file> -
    ```
-3. **Access to the web application**: your instructor will give you its
-   address (e.g. `http://<lab-ip>:8080/`). You start already logged in
-   as John's web account (`john` / `Summer2019!` — found among his
-   things).
+3. **A web login**: you start already logged in as John's web account
+   (`john` / `Summer2019!` — found among his things).
+
+(If your instructor handed you a separate folder instead — some events
+run that way — the same material is in there; start with that instead
+of the web app's `/materials/` page.)
 
 ## Tools you'll want
 
@@ -33,7 +40,8 @@
 
 ## Where to start
 
-Start with the handover material, not the web app. There's a reason
+Visit the web app's address and start with the handover material
+linked from the landing page — not the login form. There's a reason
 John's old profile is in there.
 
 See `Rules.md` for what's in and out of scope, and `Flag-Submission.md`

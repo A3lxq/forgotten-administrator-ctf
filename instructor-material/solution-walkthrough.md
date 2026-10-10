@@ -6,11 +6,15 @@
 
 ## Stage 1 — OSINT (Original Flag 1, 100 pts)
 
-Files: `challenge-data/stage1-osint/`.
+Served live by the app, unauthenticated, at `/materials/osint/`
+(also present under `challenge-data/stage1-osint/` in this repo, used
+to build and test the content — both are the same files).
 
-1. Open `profile.html` — username `jtyler_dev`, links conceptually to
-   the `ledger-tools` project (mentioned in Activity).
-2. Open `project-page.html` — footer has:
+1. Visit `http://<vm>:8080/` → landing page links to
+   `/materials/` → `/materials/osint/profile.html` — username
+   `jtyler_dev`, links conceptually to the `ledger-tools` project
+   (mentioned in Activity).
+2. `/materials/osint/project-page.html` — footer has:
    `Build fingerprint: SYN{osint_fingerprint_f0c73a91}` → **Flag 1**.
 3. Decoys on `profile.html`: an old "CI badge" (`FFLAG:old_profile_rev1_55c2`,
    plaintext) and a hex-encoded encrypted gist (`FFLAG:deprecated_repo_link_a913`,
@@ -18,10 +22,12 @@ Files: `challenge-data/stage1-osint/`.
 
 ## Stage 2 — Metadata (Original Flag 2, 100 pts)
 
-Files: `challenge-data/stage2-metadata/*.png`.
+Served live at `/materials/metadata/*.png` (also
+`challenge-data/stage2-metadata/*.png` in this repo).
 
-1. `exiftool handover_photo.png` → `Comment` field:
-   `handover desk photo — SYN{exif_breadcrumb_8d12ff04}` → **Flag 2**.
+1. Download `handover_photo.png`, `exiftool handover_photo.png` →
+   `Comment` field: `handover desk photo — SYN{exif_breadcrumb_8d12ff04}`
+   → **Flag 2**.
 2. Decoys: `old_office.png`'s `Comment` has
    `FFLAG:camera_test_shot_2017_cc41` (plaintext). `scan_backup.png`'s
    `Comment` is a hex-encoded ciphertext; its `Artist` field literally
@@ -30,7 +36,10 @@ Files: `challenge-data/stage2-metadata/*.png`.
 
 ## Stage 3 — Git history + crypto (Original Flag 3, 150 pts)
 
-Repo: `challenge-data/stage3-git-history/`.
+Served live at `/materials/stage3-git-history.tar.gz` — download,
+extract (`tar xzf stage3-git-history.tar.gz`), then work inside the
+extracted `stage3-git-history/` repo (also present directly, already
+extracted, as `challenge-data/stage3-git-history/` in this repo).
 
 1. `git log --oneline` shows 4 commits; the working tree only has
    `README.md`. The commit `Clean up stale backup files` removed 4

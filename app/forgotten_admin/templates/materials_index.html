@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Handover Materials{% endblock %}
+{% block content %}
+  <h1>Handover Materials</h1>
+  <p>Everything John left behind. Nothing here requires a login.</p>
+
+  <h2>OSINT</h2>
+  <ul>
+    <li><a href="{{ url_for('materials.osint_file', filename='profile.html') }}">jtyler_dev's profile</a></li>
+    <li><a href="{{ url_for('materials.osint_file', filename='project-page.html') }}">ledger-tools project page</a></li>
+  </ul>
+
+  <h2>Handover photos (check their metadata)</h2>
+  <ul>
+    <li><a href="{{ url_for('materials.metadata_file', filename='handover_photo.png') }}">handover_photo.png</a></li>
+    <li><a href="{{ url_for('materials.metadata_file', filename='old_office.png') }}">old_office.png</a></li>
+    <li><a href="{{ url_for('materials.metadata_file', filename='scan_backup.png') }}">scan_backup.png</a></li>
+  </ul>
+
+  <h2>Project repository history</h2>
+  <ul>
+    <li><a href="{{ url_for('materials.stage3_archive') }}">stage3-git-history.tar.gz</a>
+      — download and extract, then <code>git log</code> inside it.</li>
+  </ul>
+
+  <h2>Tools</h2>
+  <ul>
+    <li><a href="{{ url_for('materials.flagcrypto_tool') }}">flagcrypto.py</a>
+      — decrypts anything you find that's encrypted, once you have the
+      password: <code>python3 flagcrypto.py decrypt "&lt;password&gt;" &lt;file&gt; -</code></li>
+  </ul>
+{% endblock %}

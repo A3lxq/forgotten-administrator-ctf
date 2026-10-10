@@ -365,6 +365,46 @@ lab networking untested (only single-host loopback), no exhaustive
 red-team pass for unintended shortcuts, and no separate KVM-accelerated
 verification (everything here ran under TCG software emulation).
 
+## Addendum — self-contained materials (post-Phase-8)
+
+The user asked, after Phase 8, whether a player could just import the
+box and play without a separately-handed-out folder. Answer at the
+time: **no, not yet** — Stage 1-3 content only existed as a separate
+`dist/player-package`. Fixed:
+
+- New `app/forgotten_admin/materials.py` blueprint: serves
+  `challenge-data/{stage1-osint,stage2-metadata,tools}` and a new
+  `stage3-git-history.tar.gz` archive (built by `author_flags.py`)
+  directly from the running app, unauthenticated, at `/materials/`.
+  Uses `send_from_directory` throughout (rejects path traversal by
+  construction). `/` is now a public landing page, not a login
+  redirect.
+- `PUBLIC_DATA_DIR` config (dev default: the repo's own
+  `challenge-data/`; VM: `/opt/forgotten-admin/public-data`, a curated
+  root:root 755/644 copy containing only player-safe content, deployed
+  by `provision.sh`/`remote-provision.sh`).
+- 9 new tests (`test_materials.py`, 24 total now), including path-
+  traversal rejection — all passing.
+- **A real bug found while deploying this**: `remote-provision.sh` used
+  `systemctl enable --now`, which does **not** restart an already-
+  running service when its unit file or the app code changes — it's a
+  no-op if already active. The new code silently never loaded on
+  re-provision. Fixed: `enable` (persist across reboots) +
+  unconditional `restart` (always picks up changes), confirmed live
+  (new PID, fresh start time, `/materials/` immediately reachable).
+- Verified live on the VM: landing page, materials index, OSINT page
+  (contains Flag 1), metadata photo (real PNG), Stage 3 archive
+  (downloaded, extracted, `git log`/`git show` recovered the deleted
+  backup + passphrase exactly as before), flagcrypto.py tool download,
+  and path traversal correctly rejected (`404`) against two different
+  traversal attempts.
+- `health-check.sh` extended with 2 checks for this; all pass.
+- Docs updated: `player-material/Getting-Started.md` (materials are on
+  the box now, separate folder is a documented fallback only),
+  `instructor-material/solution-walkthrough.md` (Stage 1-3 steps now
+  reference the live `/materials/` URLs), `instructor-material/
+  security-review.md` (new row for this surface), `SETUP.md`.
+
 ## Outstanding items requiring the project owner
 
 1. **Install VM build tooling** (needs sudo password, interactive):

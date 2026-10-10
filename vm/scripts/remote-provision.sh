@@ -62,6 +62,15 @@ EOF
 sudo chmod 750 /home/admin /home/admin/evidence /home/admin/flags
 sudo chown -R admin:admin /home/admin
 
+echo "== Laying out player materials (Stage 1-3 content, served by the app) =="
+PUBLIC_DATA_DIR=/opt/forgotten-admin/public-data
+sudo mkdir -p "$PUBLIC_DATA_DIR"
+sudo rsync -a --delete /tmp/forgotten-admin-public-data/ "$PUBLIC_DATA_DIR/"
+sudo chown -R root:root "$PUBLIC_DATA_DIR"
+sudo find "$PUBLIC_DATA_DIR" -type d -exec chmod 755 {} +
+sudo find "$PUBLIC_DATA_DIR" -type f -exec chmod 644 {} +
+sudo rm -rf /tmp/forgotten-admin-public-data
+
 echo "== Installing systemd service (runs as Linux 'admin', not root) =="
 sudo tee /etc/systemd/system/forgotten-admin.service >/dev/null <<EOF
 [Unit]
@@ -74,6 +83,7 @@ User=admin
 Group=admin
 WorkingDirectory=$APP_DIR/app
 Environment=FLASK_APP=$APP_DIR/app/wsgi.py
+Environment=PUBLIC_DATA_DIR=$PUBLIC_DATA_DIR
 ExecStart=$VENV/bin/python3 $APP_DIR/app/wsgi.py
 Restart=on-failure
 # Deliberately NOT root, NOT NoNewPrivileges=false-with-caps, no extra
@@ -89,7 +99,12 @@ EOF
 sudo sed -i "s/app.run(debug=False)/app.run(host='0.0.0.0', port=8000, debug=False)/" "$APP_DIR/app/wsgi.py"
 
 sudo systemctl daemon-reload
-sudo systemctl enable --now forgotten-admin.service
+sudo systemctl enable forgotten-admin.service
+# `enable --now` does NOT restart an already-running service when the
+# unit file or app code changed -- it's a no-op if it's already active.
+# `restart` is unconditional and correct whether this is a first
+# install or a re-provision after a code/config change.
+sudo systemctl restart forgotten-admin.service
 sleep 1
 sudo systemctl --no-pager --full status forgotten-admin.service | head -10
 

@@ -42,6 +42,7 @@
 | IDOR and command injection are the only intentional web vulnerabilities | ✅ confirmed by code review | `app/forgotten_admin/` has exactly two marked `INTENTIONAL VULNERABILITY` sections (`records.py`, `admin.py`); no other route skips auth/authorization checks. |
 | No general-purpose remote command service | ✅ confirmed | The only command execution path is the single `host` field in `/admin/diagnostics`, gated by the admin role — not a generic exec endpoint. |
 | Dev-only `SECRET_KEY` is not a live risk | ✅ acceptable for this lab | `app/forgotten_admin/__init__.py` has a hardcoded Flask `SECRET_KEY` — fine for an isolated, disposable lab VM; would need to change for any non-disposable deployment (noted, not a finding against this project's actual threat model). |
+| The unauthenticated `/materials/` blueprint only serves player-safe content, and rejects path traversal | ✅ confirmed, live | `materials.py` uses `send_from_directory` exclusively (validates the resolved path stays inside the given directory). Tested live against the VM: `/materials/osint/../../app/forgotten_admin/db.py` and a similar traversal attempt at `instructor-material/flag-manifest.json` both → `404`. `PUBLIC_DATA_DIR` on the VM (`/opt/forgotten-admin/public-data`) is a curated copy containing only Stage 1-3 player content — never instructor-material, app source, or the flag-staging directory. |
 
 ## Listening services on the VM
 

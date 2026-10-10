@@ -11,6 +11,7 @@
     "stage1_dir": "challenge-data/stage1-osint",
     "stage2_dir": "challenge-data/stage2-metadata",
     "stage3_dir": "challenge-data/stage3-git-history",
+    "stage3_archive": "challenge-data/stage3-git-history.tar.gz",
     "vm_staging_dir": "vm/flag-staging"
   },
   "flags": [

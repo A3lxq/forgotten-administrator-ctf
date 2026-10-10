@@ -18,6 +18,14 @@ Flask app, for a 5-stage story-driven CTF. Full design in
 `instructor-material/instructor-guide.md`. This guide only covers
 **getting it running**; the guide above covers **running the event**.
 
+**Everything a player needs is served by the box itself** — the
+OSINT/metadata/git-history materials (Stages 1-3) are hosted directly
+by the web app at `/materials/`, unauthenticated. A player only needs
+the VM's address; nothing separate needs to be downloaded or handed
+out. (`scripts/package.sh`'s `player-package` folder still exists as
+an optional offline/no-network fallback, not as the primary delivery
+method.)
+
 ---
 
 ## Option A: Build everything from source

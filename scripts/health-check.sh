@@ -24,6 +24,14 @@ echo "== Forgotten Administrator CTF — health check =="
 
 check "VM reachable over SSH (instructor key)" bash -c "$SSH 'echo ok' | grep -q ok"
 check "web app /healthz returns ok" bash -c "curl -sf http://127.0.0.1:8080/healthz | grep -q '\"status\":\"ok\"'"
+check "player materials reachable unauthenticated (Stage 1-3, no handout folder needed)" bash -c "
+  curl -sf http://127.0.0.1:8080/materials/osint/profile.html | grep -q jtyler_dev &&
+  curl -sf http://127.0.0.1:8080/materials/stage3-git-history.tar.gz -o /dev/null
+"
+check "materials route rejects path traversal" bash -c "
+  code=\$(curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:8080/materials/osint/../../app/forgotten_admin/db.py')
+  [ \"\$code\" = '404' ]
+"
 check "forgotten-admin.service is active" bash -c "$SSH 'systemctl is-active forgotten-admin' | grep -q active"
 check "app runs as Linux 'admin', not root" bash -c "$SSH 'ps -o user= -C python3' | grep -qx admin"
 check "admin has no sudo rights" bash -c "$SSH 'sudo -u admin sudo -n -l' 2>&1 | grep -q 'password is required'"
