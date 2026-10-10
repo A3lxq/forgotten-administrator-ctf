@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Phase 8 — Packaging
+- Finished `scripts/build.sh`, `health-check.sh`, `reset.sh` (previously
+  Phase-1 placeholders) as real orchestrators over the VM scripts.
+- Added `vm/scripts/export-vm.sh`: flattens the clean-start snapshot
+  into a standalone, checksummed qcow2. Verified by booting the export
+  independently on isolated ports and confirming all state intact.
+- Added `scripts/package.sh`: separates player/instructor deliverables,
+  with an automated leak check (spot-tested against a planted leak).
+- Added `HANDOVER-REPORT.md` against the spec's Definition of Done.
+- Final clean regression pass: tests, flag validator, health check.
+
+**Project complete — all 8 phases done.**
+
 ### Phase 7 — Integration testing
 - Ran the full Section 21 acceptance checklist (A-G) against the live
   VM; wrote `instructor-material/acceptance-test-report.md` with

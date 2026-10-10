@@ -45,7 +45,7 @@ application works (there is no application yet).
 - [x] Phase 5 — Privilege escalation — verified below
 - [x] Phase 6 — Documentation (player + instructor) — verified below
 - [x] Phase 7 — Integration testing — verified below
-- [ ] Phase 8 — Packaging
+- [x] Phase 8 — Packaging — verified below. **Project complete.**
 
 ## Phase 2 — Application (DONE, verified)
 
@@ -325,6 +325,45 @@ All A-G checks: **PASS**. Two honest gaps remain, stated in the report:
 multi-host lab networking untested (only single-host loopback), and
 Section G3 (no accidental shortcut) is a reasoned check of the
 implemented surface, not an exhaustive penetration test.
+
+## Phase 8 — Packaging (DONE)
+
+- **Finished the remaining stub scripts** (`scripts/build.sh`,
+  `health-check.sh`, `reset.sh`) — all three were Phase-1 placeholders;
+  now real, tested orchestrators delegating to the actual VM logic.
+  `health-check.sh`'s failure-detection was spot-tested (made the
+  privesc script temporarily non-writable, confirmed it correctly
+  reported `[FAIL]`, restored it).
+- **`vm/scripts/export-vm.sh`**: flattens the VM's `clean-start`
+  snapshot into a standalone qcow2 (no backing-file dependency),
+  checksummed, with `IMPORT.md`. **Actually booted the exported image
+  independently** on isolated ports (2223/8081) with
+  `snapshot=on` to avoid touching the artifact — confirmed accounts,
+  app (`/healthz`), the app running as `admin`, all 4 deployed flag
+  files, and the privesc weakness were all intact in that independent
+  boot. This is a genuinely verified, distributable VM image, ~1.3GB,
+  at `vm/dist/forgotten-admin-ctf.qcow2`.
+- **`scripts/package.sh`**: produces separate `dist/player-package`
+  (`player-material/` + the player-facing parts of `challenge-data/`)
+  and `dist/instructor-package` (everything else, including the
+  exported VM and the private SSH key). Includes an automated check
+  that **aborts the build** if any decrypted genuine-flag value or
+  `flag-manifest.json` ends up in the player package — **spot-tested
+  for real**: planted a genuine flag value in the player-material
+  source, re-ran the script, confirmed it printed `LEAK:` and exited 1;
+  reverted the plant and confirmed a clean re-run.
+- **`HANDOVER-REPORT.md`**: the final report against the spec's own
+  Definition of Done (Section 24), every item backed by evidence
+  already recorded in this file or `acceptance-test-report.md`.
+- Final regression pass before this commit: `run-tests.sh` (15
+  passed), `validate-flags.sh` (all checks passed), `health-check.sh`
+  (healthy) — all re-run clean after all packaging work.
+
+**This completes all 8 phases of the project.** Honest limitations
+carried forward (not fixed in this phase, stated plainly): multi-host
+lab networking untested (only single-host loopback), no exhaustive
+red-team pass for unintended shortcuts, and no separate KVM-accelerated
+verification (everything here ran under TCG software emulation).
 
 ## Outstanding items requiring the project owner
 
