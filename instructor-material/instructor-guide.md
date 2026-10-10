@@ -28,7 +28,6 @@ investigated."
 |---|---|
 | `build-guide.md` | Building/deploying the VM and app from scratch |
 | `solution-walkthrough.md` | The exact, verified path through every stage |
-| `hint-sheet.md` | Progressive hints to give players (3 levels/stage) |
 | `scoring-guide.md` | Point values, flag validation, scoring a submission |
 | `privesc-design.md` | The Stage 5 weakness: what, why, how to test/reset |
 | `reset-guide.md` | Resetting app state / the privesc mechanism / the VM |

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Addendum — hint-sheet.md removed
+- Deleted `instructor-material/hint-sheet.md` (owner request); removed
+  its reference from `instructor-guide.md`'s document map.
+
 ### Addendum — credential reuse instead of reverse shell; 5 decoys
 - Removed the `/admin/diagnostics` command-injection vulnerability
   entirely. Stage 4's second "vulnerability" is now credential reuse:

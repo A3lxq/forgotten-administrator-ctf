@@ -469,6 +469,13 @@ hint-sheet,solution-walkthrough,security-review,scoring-guide,
 acceptance-test-report}.md`, `vm/{README,networking}.md`, root
 `README.md`.
 
+## Addendum 3 — hint-sheet.md removed per owner request
+
+Deleted `instructor-material/hint-sheet.md` from the repo (owner
+request). Removed its row from `instructor-guide.md`'s document map.
+History still in git if it's ever wanted back. No code or test
+depended on this file, so nothing else needed to change.
+
 ## Outstanding items requiring the project owner
 
 1. **Install VM build tooling** (needs sudo password, interactive):
