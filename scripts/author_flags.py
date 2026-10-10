@@ -49,16 +49,14 @@ GENUINE = {
             # project's "Original Flag 3 unlocks the final artifact" rule).
 }
 
+# Exactly one decoy per stage (5 total) -- a mix of plaintext and
+# encrypted so the "decoys can be either" lesson still comes through,
+# just without two of everything.
 DECOYS = {
     "d1a": dict(value="FFLAG:old_profile_rev1_55c2", stage="1-osint", encrypted=False),
-    "d1b": dict(value="FFLAG:deprecated_repo_link_a913", stage="1-osint", encrypted=True, password="legacyKey2016"),
-    "d2a": dict(value="FFLAG:camera_test_shot_2017_cc41", stage="2-metadata", encrypted=False),
     "d2b": dict(value="FFLAG:draft_scan_metadata_77b0", stage="2-metadata", encrypted=True, password="scanpass2017"),
-    "d3a": dict(value="FFLAG:legacy_test_flag_2018_3f09", stage="3-git-crypto", encrypted=False),
     "d3b": dict(value="FFLAG:rotated_out_jan_2019_e2a4", stage="3-git-crypto", encrypted=True, password="old-wifi-2018"),
     "d4a": dict(value="FFLAG:ticket_closed_wontfix_19d7", stage="4-web-idor-admin", encrypted=False),
-    "d4b": dict(value="FFLAG:backup_pre_rotation_88c5", stage="4-web-idor-admin", encrypted=True, password="prerotate-2023"),
-    "d5a": dict(value="FFLAG:old_root_memo_4b61", stage="5-privesc-root", encrypted=False),
     "d5b": dict(value="FFLAG:old_root_snapshot_f02e", stage="5-privesc-root", encrypted=True, password="SnapshotKey-2023"),
 }
 
@@ -73,10 +71,18 @@ def build_stage1_osint() -> dict:
     d = CHALLENGE / "stage1-osint"
     reset_dir(d)
 
+    # Decoy (d1a): deliberately LOUD and first thing on the page --
+    # looks like a found flag, inviting a quick, satisfied submission.
+    # Genuine (Flag 1): blended into ordinary changelog prose on the
+    # *other* page, no special styling -- you have to actually read it.
     profile_html = f"""<!doctype html>
 <html><head><title>SynHub — jtyler_dev</title></head>
 <body>
 <h1>jtyler_dev</h1>
+<blockquote style="border:2px solid #c00;padding:0.5em">
+  <strong>⚠️ cached status badge, 2017 (spark-ci-badge, dead project):</strong><br>
+  <code>test-flag: {DECOYS['d1a']['value']}</code>
+</blockquote>
 <p>Full-stack tinkerer. Builds small internal tools, then forgets about
 them. Previously: <em>ledger-tools</em> (internal), a few archived
 scripts.</p>
@@ -85,13 +91,8 @@ scripts.</p>
   <li>2019-11: Archived project <code>ledger-tools</code> — "handed off,
       see project page"</li>
   <li>2017-03: Archived project <code>spark-ci-badge</code> (dead CI
-      integration) — last status badge cached below:
-      <code>test-flag: {DECOYS['d1a']['value']}</code></li>
+      integration, badge cached above)</li>
 </ul>
-<h2>Old gist (2016 migration backup, don't need this anymore)</h2>
-<pre>{flagcrypto.encrypt_bytes(DECOYS['d1b']['password'], DECOYS['d1b']['value'].encode()).hex()}</pre>
-<p><small>unlock code from the 2016 migration, in case I ever need this
-again: {DECOYS['d1b']['password']}</small></p>
 <p>Contact: jtyler (dot) dev (at) oldmail example — inbox is dead, don't
 bother.</p>
 </body></html>
@@ -106,15 +107,14 @@ bother.</p>
 handover. See the admin for ongoing access.</p>
 <h2>Changelog</h2>
 <ul>
-  <li>v0.4 — handover notes added, see repo history</li>
-  <li>v0.3 — added admin diagnostics page</li>
+  <li>v0.4 — handover notes added, see repo history. Tagged this build
+      {GENUINE[1]['value']} in case anyone needs to reference it later.</li>
+  <li>v0.3 — admin account provisioned (reused the same password
+      everywhere -- todo: fix before launch -- never got fixed)</li>
   <li>v0.2 — initial IDOR-prone record viewer (todo: fix before launch —
       never got fixed)</li>
   <li>v0.1 — initial commit</li>
 </ul>
-<footer>
-  <p>Build fingerprint: {GENUINE[1]['value']}</p>
-</footer>
 </body></html>
 """
     (d / "project-page.html").write_text(project_html)
@@ -144,15 +144,13 @@ def build_stage2_metadata() -> dict:
             "Comment": f"handover desk photo — {GENUINE[2]['value']}",
             "Artist": "jtyler_dev",
         },
-        "old_office.png": {
-            "Comment": f"2017 office move, keep for records — {DECOYS['d2a']['value']}",
-            "Artist": "unknown",
-        },
         "scan_backup.png": {
             "Comment": flagcrypto.encrypt_bytes(
                 DECOYS["d2b"]["password"], DECOYS["d2b"]["value"].encode()
             ).hex(),
-            "Artist": f"password noted on the back: {DECOYS['d2b']['password']}",
+            # Loud on purpose -- a decoy password note should be the
+            # easiest thing to notice in this whole stage.
+            "Artist": f"PASSWORD (use this to unlock the Comment field!): {DECOYS['d2b']['password']}",
         },
     }
 
@@ -167,8 +165,8 @@ def build_stage2_metadata() -> dict:
 
     (d / "README.md").write_text(
         "# Stage 2 — Metadata\n\n"
-        "Three photos from the handover. Inspect their metadata (not just "
-        "the pixels — they're all 1x1 placeholder images). Try:\n"
+        "Two photos from the handover. Inspect their metadata (not just "
+        "the pixels — they're both 1x1 placeholder images). Try:\n"
         "`exiftool handover_photo.png`\n"
     )
     return {"stage2_dir": str(d.relative_to(ROOT))}
@@ -200,18 +198,19 @@ def build_stage3_git() -> dict:
     git("add", "notes.txt", "handover_backup.enc")
     git("commit", "-q", "-m", "Add encrypted handover backup + passphrase note")
 
-    (d / "old_test_flag.txt").write_text(f"{DECOYS['d3a']['value']}\n(old test value, ignore)\n")
     decoy3b_blob = flagcrypto.encrypt_bytes(DECOYS["d3b"]["password"], DECOYS["d3b"]["value"].encode())
     (d / "old_backup_2018.enc").write_bytes(decoy3b_blob)
-    git("add", "old_test_flag.txt", "old_backup_2018.enc")
-    git("commit", "-q", "-m", "Rotate out the 2018 backup (encrypted with the old-wifi-2018 passphrase)")
+    git("add", "old_backup_2018.enc")
+    # Loud on purpose: the password is right in the commit message, and
+    # this commit sits CLOSER to HEAD than the genuine one -- a player
+    # scanning `git log` newest-first hits this one first.
+    git("commit", "-q", "-m", "Found the old 2018 backup again! Password is old-wifi-2018, decrypt old_backup_2018.enc")
 
     # Simulate "deleted or changed file recoverable through history":
     # the backup + notes get removed from the latest commit, but remain
     # recoverable via `git log --follow` / `git show <commit>:path`.
     (d / "handover_backup.enc").unlink()
     (d / "notes.txt").unlink()
-    (d / "old_test_flag.txt").unlink()
     (d / "old_backup_2018.enc").unlink()
     (d / "README.md").write_text(
         "# ledger-tools\n\nInternal handover tooling.\n\n"
@@ -251,19 +250,16 @@ def build_stage4_and_5_artifacts() -> dict:
     (admin_flags / "original_flag_4.enc").write_bytes(
         flagcrypto.encrypt_bytes(GENUINE[4]["password"], GENUINE[4]["value"].encode())
     )
-    (admin_flags / "original_flag_4_backup.enc").write_bytes(
-        flagcrypto.encrypt_bytes(DECOYS["d4b"]["password"], DECOYS["d4b"]["value"].encode())
-    )
     (admin_evidence / "decrypt_notes.txt").write_text(
         "Password notes from the last handover (clean these up...):\n"
-        f"  original_flag_4.enc        -> {GENUINE[4]['password']}\n"
-        f"  original_flag_4_backup.enc -> {DECOYS['d4b']['password']} "
-        "(old, pre-rotation backup — superseded)\n"
+        f"  original_flag_4.enc -> {GENUINE[4]['password']}\n"
     )
-    (admin_evidence / "old_ticket.txt").write_text(
-        f"TICKET-1182: Diagnostics tool flagged by security review.\n"
-        f"Status: wontfix (deprioritized)\n"
-        f"ref: {DECOYS['d4a']['value']}\n"
+    # Loud on purpose: a file that all but announces itself as "the flag".
+    (admin_evidence / "FOUND_A_FLAG.txt").write_text(
+        f"Found this while cleaning up old tickets, looks like a flag:\n"
+        f"{DECOYS['d4a']['value']}\n"
+        f"(context: TICKET-1182, admin account flagged by security review "
+        f"for credential reuse, status wontfix)\n"
     )
 
     (root_dir / "final_evidence.enc").write_bytes(
@@ -272,11 +268,14 @@ def build_stage4_and_5_artifacts() -> dict:
     (root_dir / "old_evidence.enc").write_bytes(
         flagcrypto.encrypt_bytes(DECOYS["d5b"]["password"], DECOYS["d5b"]["value"].encode())
     )
+    # Loud on purpose: whatever's in /root should feel like "the" prize
+    # the moment you can finally read it -- old_evidence.enc looks like
+    # exactly that, right down to the password sitting in the same file.
     (root_dir / "root_note.txt").write_text(
-        "Old note to self:\n"
-        f"- last year's snapshot (old_evidence.enc) password: {DECOYS['d5b']['password']} "
-        "(deprecated set, kept for the audit trail)\n"
-        f"- {DECOYS['d5a']['value']} (stale, pre-dates this handover, ignore)\n"
+        "Finally got root, huh? Before you get excited:\n"
+        f"- old_evidence.enc — this looks important, password is "
+        f"{DECOYS['d5b']['password']} (turned out to be last year's "
+        "deprecated snapshot, kept around for the audit trail)\n"
     )
 
     return {"vm_staging_dir": str(staging.relative_to(ROOT))}

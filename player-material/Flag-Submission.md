@@ -4,10 +4,13 @@
 
 - **Genuine flags** look like: `SYN{...}`. There are **5** of them,
   worth points.
-- **Decoy flags** look like: `FFLAG:...`. There are **10** of them.
-  They are real things you can find and decrypt, but they are
-  deliberately wrong turns — **they award 0 points**. Finding one isn't
-  a mistake; submitting one just won't score.
+- **Decoy flags** look like: `FFLAG:...`. There are **5** of them (one
+  per stage). They are real things you can find and decrypt, but they
+  are deliberately wrong turns — **they award 0 points**. They are
+  usually easy and fast to find — if something feels like an
+  immediate, satisfying win, double-check its prefix before you
+  celebrate. Finding one isn't a mistake; submitting one just won't
+  score.
 
 ## Scoring
 

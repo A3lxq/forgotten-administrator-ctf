@@ -8,9 +8,19 @@
 A single Ubuntu Server 24.04 LTS VM (QEMU/KVM, host-only networking)
 running one deliberately vulnerable Flask application, with a 5-stage
 story-driven path from OSINT to a root-protected encrypted artifact.
-5 genuine flags (800 points total), 10 decoys (0 points). Built and
-verified incrementally — see `PROJECT-STATUS.md` in the project root
-for exactly what's been tested and how.
+5 genuine flags (800 points total), 5 decoys (0 points, one per stage).
+Built and verified incrementally — see `PROJECT-STATUS.md` in the
+project root for exactly what's been tested and how.
+
+**Design note on decoys:** decoys are deliberately the *loud, fast,
+satisfying* find in each stage — prominent placement, enticing framing
+("found a flag!", password notes that scream for attention). Genuine
+flags are deliberately *quiet* — blended into ordinary prose, requiring
+you to actually read rather than skim. A player who grabs the first
+flag-shaped thing they see and stops looking will submit a decoy. This
+is intentional: it rewards careful verification over speed, and gives
+instructors an easy tell for "rushed through it" vs. "actually
+investigated."
 
 ## Document map
 
@@ -39,28 +49,32 @@ for exactly what's been tested and how.
 4. **Web app / IDOR** — log in as the seeded `john` web account,
    `GET /records/2` (no ownership check) discloses the `admin` web
    account's password.
-5. **Admin function / reverse shell** — `/admin/diagnostics`'s `host`
-   field is shelled out unsanitized → command execution as the **Linux**
-   `admin` account (the whole app runs under that systemd service
-   identity) → Flag 4 (encrypted, 200 pts, in `/home/admin/flags/`).
+5. **Credential reuse / SSH** — that same password is also the real
+   Linux `admin` account's SSH password (set in
+   `vm/scripts/remote-provision.sh`, SSH password auth scoped to that
+   one account via an sshd `Match User admin` block). `ssh admin@<vm>`
+   with it → Flag 4 (encrypted, 200 pts, in `/home/admin/flags/`). No
+   command injection or reverse shell involved — this is the entire
+   second "vulnerability": the admin reused one password everywhere.
 6. **Linux privilege escalation** — a root cron job executes a script
    that's group-writable by `admin` → genuine root shell.
 7. **Final artifact** — `/root/final_evidence.enc`, unlocked with Flag
    3's decrypted plaintext (not its password, not any Linux password)
    → Flag 5 (encrypted, 250 pts).
 
-Total: 800 points across 5 genuine flags. 10 decoys exist alongside
-every stage and are safe, fair distractions — see `flag-manifest.json`.
+Total: 800 points across 5 genuine flags. 5 decoys exist alongside
+every stage (one each) and are safe, fair distractions — see
+`flag-manifest.json`. They're the easy, obvious, fast find in each
+stage; genuine flags require actually reading.
 
 ## Running an event
 
 1. Build/boot the VM and deploy everything (`build-guide.md`), or
    restore a clean snapshot (`reset-guide.md`).
 2. Give players `player-material/` plus the VM's connection details
-   (host/port for the web app and, if you intend players to use SSH
-   themselves for anything, document that separately — the intended
-   path does not require giving players any SSH credentials; they
-   reach a shell via the application's own vulnerability).
+   (host/port for the web app). Players never need SSH credentials
+   handed to them directly — the intended path is to find the admin
+   password through the IDOR and SSH in with it themselves.
 3. Watch for out-of-scope activity per `player-material/Rules.md`.
 4. Score submissions per `scoring-guide.md`.
 5. Reset per `reset-guide.md` before the next team.

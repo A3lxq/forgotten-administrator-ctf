@@ -9,7 +9,7 @@ This is **one Linux machine**, not a set of separate boxes. Players progress thr
 2. File metadata analysis
 3. Git history investigation + cryptography
 4. Web enumeration + IDOR
-5. A web-to-shell pivot (admin reverse shell)
+5. A web-to-shell pivot (credential reuse — the disclosed password is also the Linux admin's real SSH password)
 6. Linux enumeration + privilege escalation
 7. Root-only artifact decryption
 

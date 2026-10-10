@@ -7,10 +7,19 @@
 #   1. Lays out /opt/forgotten-admin (app code, owned by ctfbuilder:ctfbuilder,
 #      not world-writable) and /opt/forgotten-admin/app/.venv (the app's
 #      Python environment).
-#   2. Creates the systemd service that runs the Flask app AS THE LINUX
-#      "admin" ACCOUNT (not root, not ctfbuilder) -- this is what makes the
-#      app's own admin-diagnostics command injection (Phase 2) translate
-#      into real code execution as the Linux admin user.
+#   2. Sets the Linux "admin" account's password to match the web app's
+#      seeded admin password, and enables SSH password auth for that
+#      ONE account only (everyone else stays key-only/disabled). This
+#      is Stage 4's intended "second vulnerability": password reuse
+#      across the web app and the server itself. The IDOR disclosure
+#      (Phase 2) is the entire exploit -- there is no separate
+#      command-injection step anymore (an earlier build of this project
+#      used one; removed by design in favor of this simpler, equally
+#      realistic lesson).
+#   2b. Creates the systemd service that runs the Flask app AS THE LINUX
+#      "admin" ACCOUNT (not root, not ctfbuilder) -- narrative only now
+#      (the app needing elevated internal access), not required for
+#      the exploit path.
 #   3. Lays out /home/admin/{README.txt,evidence,flags} per Section 11,
 #      owned by admin, not world-readable.
 #   4. Seeds the app's database (idempotent; db.py's seed_db() already
@@ -39,6 +48,24 @@ fi
 
 echo "== Seeding database =="
 FLASK_APP="$APP_DIR/app/wsgi.py" "$VENV/bin/flask" seed || true
+
+echo "== Syncing the Linux admin password to match the web app's (Stage 4) =="
+# Same credential disclosed via the IDOR -- this reuse IS the exploit.
+echo 'admin:N3tOps-Diag#7' | sudo chpasswd
+
+echo "== Enabling SSH password auth for 'admin' only (everyone else stays key-only/disabled) =="
+sudo tee /etc/ssh/sshd_config.d/90-admin-password-auth.conf >/dev/null <<'EOF'
+# Loads after cloud-init's global "PasswordAuthentication no" (sorted
+# after 50-/60-* by filename) and overrides it for this one account
+# only -- intentional, Stage 4's credential-reuse lesson. john, root,
+# and ctfbuilder are unaffected (root login is separately disabled;
+# ctfbuilder/john have no business reason to use a password here).
+Match User admin
+    PasswordAuthentication yes
+EOF
+sudo chmod 644 /etc/ssh/sshd_config.d/90-admin-password-auth.conf
+sudo sshd -t   # fail loudly here, not silently on the next SSH attempt
+sudo systemctl reload ssh
 
 echo "== Laying out /home/admin evidence directories (Section 11) =="
 sudo -u admin mkdir -p /home/admin/evidence /home/admin/flags

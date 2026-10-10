@@ -72,7 +72,7 @@ app/.venv/bin/python3 scripts/author_flags.py
 cd vm
 ./scripts/deploy-flags.sh               # pushes Stage 4/5 artifacts onto the VM
 ```
-`author_flags.py` is the single source of truth for all 15 flags; it
+`author_flags.py` is the single source of truth for all 10 flags; it
 regenerates `challenge-data/` and `instructor-material/flag-manifest.json`.
 Re-run it (then `deploy-flags.sh`) any time a flag value changes.
 

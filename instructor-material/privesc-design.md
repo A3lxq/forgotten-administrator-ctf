@@ -67,7 +67,7 @@ would, with zero instructor assistance — not a simulated/assumed result.
 ```
 cd vm
 ./scripts/provision.sh          # (re)installs the weakness if missing
-# as admin (or over the real reverse shell during an actual run):
+# as admin (or over the real SSH session during an actual run):
 sudo -u admin bash -c 'echo "touch /tmp/privesc_test" >> /opt/admin-tools/cleanup.sh'
 # wait up to 60s
 ssh -i keys/ctfbuilder_ed25519 -p 2222 ctfbuilder@127.0.0.1 'test -e /tmp/privesc_test && echo OK'

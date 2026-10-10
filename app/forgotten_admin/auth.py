@@ -1,8 +1,10 @@
 """Login / logout for the fictional web application identities.
 
 Nothing in this file is the vulnerability — it's a normal session-based
-login. The vulnerabilities live in records.py (IDOR) and admin.py
-(command injection).
+login. The IDOR vulnerability lives in records.py. Stage 4's second
+"vulnerability" isn't code at all: the admin web password disclosed
+through that IDOR is also, on the VM, the Linux admin account's real
+SSH password (password reuse across trust boundaries).
 """
 from __future__ import annotations
 
@@ -32,18 +34,6 @@ def login_required(view):
     def wrapped(**kwargs):
         if g.user is None:
             return redirect(url_for("auth.login"))
-        return view(**kwargs)
-
-    return wrapped
-
-
-def admin_required(view):
-    @functools.wraps(view)
-    def wrapped(**kwargs):
-        if g.user is None:
-            return redirect(url_for("auth.login"))
-        if not g.user["is_admin"]:
-            return ("Forbidden: this page requires the admin account.", 403)
         return view(**kwargs)
 
     return wrapped

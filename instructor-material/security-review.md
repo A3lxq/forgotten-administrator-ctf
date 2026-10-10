@@ -18,7 +18,8 @@
 
 | Check | Status | Evidence |
 |---|---|---|
-| Players never get SSH credentials | ✅ by design | Only `ctfbuilder` has an SSH key; `john`/`admin` have console passwords only, `ssh_pwauth: false`. |
+| Players are never handed SSH credentials directly | ✅ by design | They find `admin`'s password themselves via the IDOR, same as the intended path. Only `ctfbuilder` has an SSH key; everyone else is password-or-disabled. |
+| SSH password auth is scoped to `admin` only, not reopened globally | ✅ confirmed live | `/etc/ssh/sshd_config.d/90-admin-password-auth.conf` is a `Match User admin` block loaded after cloud-init's global `PasswordAuthentication no`. Tested live: `admin` logs in with the disclosed password (`id` → `uid=1002(admin)`); `john` with his own real password → `Permission denied (publickey)` — password auth isn't even offered to him. |
 | `root` login disabled | ✅ confirmed | `disable_root: true` in cloud-init; `root` has no password set, no SSH key. |
 | `admin` has no sudo rights | ✅ confirmed live | `sudo -u admin sudo -n -l` → "a password is required"; no NOPASSWD entries anywhere for `admin`. |
 | App runs as `admin`, never root | ✅ confirmed live | `ps -o user= -C python3` → `admin`, both before and after Phase 5 changes. |
@@ -39,8 +40,8 @@
 
 | Check | Status | Evidence |
 |---|---|---|
-| IDOR and command injection are the only intentional web vulnerabilities | ✅ confirmed by code review | `app/forgotten_admin/` has exactly two marked `INTENTIONAL VULNERABILITY` sections (`records.py`, `admin.py`); no other route skips auth/authorization checks. |
-| No general-purpose remote command service | ✅ confirmed | The only command execution path is the single `host` field in `/admin/diagnostics`, gated by the admin role — not a generic exec endpoint. |
+| IDOR is the only intentional web-application vulnerability | ✅ confirmed by code review | `app/forgotten_admin/` has exactly one marked `INTENTIONAL VULNERABILITY` section (`records.py`). Stage 4's second "vulnerability" is credential reuse (a password, not code) — there is no command-execution endpoint in the app at all. An earlier build used a command-injection diagnostics tool for this; removed by design. |
+| No general-purpose remote command service | ✅ confirmed | There is no command-execution route in the app whatsoever (removed along with the diagnostics tool). The only way to run commands on the box is a real SSH session using the disclosed admin password. |
 | Dev-only `SECRET_KEY` is not a live risk | ✅ acceptable for this lab | `app/forgotten_admin/__init__.py` has a hardcoded Flask `SECRET_KEY` — fine for an isolated, disposable lab VM; would need to change for any non-disposable deployment (noted, not a finding against this project's actual threat model). |
 | The unauthenticated `/materials/` blueprint only serves player-safe content, and rejects path traversal | ✅ confirmed, live | `materials.py` uses `send_from_directory` exclusively (validates the resolved path stays inside the given directory). Tested live against the VM: `/materials/osint/../../app/forgotten_admin/db.py` and a similar traversal attempt at `instructor-material/flag-manifest.json` both → `404`. `PUBLIC_DATA_DIR` on the VM (`/opt/forgotten-admin/public-data`) is a curated copy containing only Stage 1-3 player content — never instructor-material, app source, or the flag-staging directory. |
 

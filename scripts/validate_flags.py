@@ -46,10 +46,10 @@ def main() -> int:
     else:
         fail(f"expected 5 genuine flags, found {len(genuine)}", failures)
 
-    if len(decoys) == 10:
-        ok(f"exactly 10 decoy flags ({len(decoys)})")
+    if len(decoys) == 5:
+        ok(f"exactly 5 decoy flags ({len(decoys)})")
     else:
-        fail(f"expected 10 decoy flags, found {len(decoys)}", failures)
+        fail(f"expected 5 decoy flags, found {len(decoys)}", failures)
 
     # Encryption distribution
     genuine_enc = sum(1 for f in genuine if f["encrypted"])
@@ -58,10 +58,10 @@ def main() -> int:
         ok(f"3 genuine flags encrypted ({genuine_enc})")
     else:
         fail(f"expected 3 genuine encrypted, found {genuine_enc}", failures)
-    if decoy_enc == 5:
-        ok(f"5 decoy flags encrypted ({decoy_enc})")
+    if decoy_enc == 3:
+        ok(f"3 decoy flags encrypted ({decoy_enc})")
     else:
-        fail(f"expected 5 decoy encrypted, found {decoy_enc}", failures)
+        fail(f"expected 3 decoy encrypted, found {decoy_enc}", failures)
 
     # Uniqueness
     values = [f["value"] for f in flags]
@@ -124,10 +124,8 @@ def main() -> int:
         "original_flag_3": lambda: from_git("handover_backup.enc"),
         "original_flag_4": lambda: (ROOT / "vm" / "flag-staging" / "admin-flags" / "original_flag_4.enc").read_bytes(),
         "original_flag_5": lambda: (ROOT / "vm" / "flag-staging" / "root" / "final_evidence.enc").read_bytes(),
-        "d1b": None,  # embedded in stage1 profile.html as a hex blob; spot-checked separately
         "d2b": None,  # embedded in stage2 PNG metadata; spot-checked separately
         "d3b": lambda: from_git("old_backup_2018.enc"),
-        "d4b": lambda: (ROOT / "vm" / "flag-staging" / "admin-flags" / "original_flag_4_backup.enc").read_bytes(),
         "d5b": lambda: (ROOT / "vm" / "flag-staging" / "root" / "old_evidence.enc").read_bytes(),
     }
 

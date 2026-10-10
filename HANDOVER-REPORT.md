@@ -13,11 +13,11 @@ in `PROJECT-STATUS.md` (phase-by-phase) and
 | 1 | Application starts from a clean build | ✅ DONE | `scripts/build.sh`; re-seeded DB + restarted service, health check passed |
 | 2 | Fictional web users work | ✅ DONE | `john`/`admin` login tested live, repeatedly |
 | 3 | IDOR works as designed | ✅ DONE | `GET /records/2` as `john` discloses admin's record, live and in pytest |
-| 4 | Admin shell path works in the isolated VM | ✅ DONE | Command injection confirmed live (proof-file + a real netcat reverse shell caught over the documented VM network path) |
+| 4 | Admin shell path works in the isolated VM | ✅ DONE | Real SSH password login confirmed live (the IDOR-disclosed password doubles as the Linux `admin` account's actual SSH password, scoped to that one account; `john` rejected the same way). Superseded an earlier command-injection/reverse-shell mechanism, removed by owner request in favor of this simpler credential-reuse lesson. |
 | 5 | Linux accounts and permissions are correct | ✅ DONE | `john`/`admin`/`ctfbuilder`/disabled `root`; `/home/admin` and `/root` permission boundaries confirmed live |
 | 6 | Privilege-escalation stage works as designed | ✅ DONE | Genuine `admin` → `euid=0` performed live, zero instructor `sudo`; reset verified |
-| 7 | 5 genuine flags and 10 decoys exist | ✅ DONE | `scripts/validate-flags.sh`: exact counts, confirmed |
-| 8 | Encryption distribution is correct | ✅ DONE | 3 genuine + 5 decoy encrypted = 8 total, confirmed |
+| 7 | 5 genuine flags and 5 decoys exist (revised from 10 by owner request) | ✅ DONE | `scripts/validate-flags.sh`: exact counts, confirmed |
+| 8 | Encryption distribution is correct | ✅ DONE | 3 genuine + 3 decoy encrypted = 6 total, confirmed |
 | 9 | Original Flag 3 unlocks the final artifact | ✅ DONE | Live decrypt chain run end to end |
 | 10 | Original Flag 3 is not the Linux root password | ✅ DONE | `root` has no password at all (login disabled); Flag 3's password/value are also distinct from each other, confirmed |
 | 11 | Original Flag 5 can be recovered after root access | ✅ DONE | Recovered live via the real privesc path |
@@ -34,13 +34,15 @@ in `PROJECT-STATUS.md` (phase-by-phase) and
 
 ## What exists, concretely
 
-- Flask app (`app/`), 15 automated tests, all passing.
+- Flask app (`app/`), 20 automated tests, all passing.
 - A real, booted Ubuntu 24.04 LTS VM (`vm/`), host-only networking,
   with the full intended vulnerability chain wired up and exploited
-  for real at least once end-to-end.
-- 15 flags (5 genuine/800 pts, 10 decoys/0 pts), standard crypto
-  (scrypt + AES-256-GCM), a private manifest, and an author/validator
-  script pair.
+  for real at least once end-to-end, entirely through a genuine SSH
+  session opened with a password found via the app's own IDOR.
+- 10 flags (5 genuine/800 pts, 5 decoys/0 pts, one per stage), standard
+  crypto (scrypt + AES-256-GCM), a private manifest, and an
+  author/validator script pair. Decoys are deliberately the loud, fast
+  find in each stage; genuine flags are deliberately quiet.
 - A one-shot privilege-escalation weakness (group-writable cron
   script), with its own reset mechanism.
 - Full player-material and instructor-material documentation sets.
@@ -58,9 +60,10 @@ in `PROJECT-STATUS.md` (phase-by-phase) and
   lab network, and re-run `scripts/health-check.sh` against that setup.
 - **"No accidental shortcut" (Section 21.G3) is a reasoned check of
   the implemented surface, not an exhaustive penetration test.** SSH
-  password auth is disabled everywhere, passwords are high-entropy, and
-  no other route skips authentication — but this wasn't fuzzed or
-  independently red-teamed.
+  password auth is scoped to the `admin` account only (confirmed: it's
+  rejected for `john`), passwords are high-entropy, and no other route
+  skips authentication — but this wasn't fuzzed or independently
+  red-teamed.
 - **This was built and tested on a single development host under
   software CPU emulation** (no `/dev/kvm` access in this environment).
   Functionally everything works the same under KVM, just faster to

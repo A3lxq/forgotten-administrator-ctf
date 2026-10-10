@@ -31,6 +31,14 @@ CREATE TABLE IF NOT EXISTS records (
 # The admin web password is intentionally discoverable by players through
 # the IDOR vulnerability (Stage 4) — that disclosure IS the puzzle, so it
 # is seeded here deliberately rather than hidden.
+#
+# This exact password is ALSO the Linux "admin" account's real SSH
+# password (set in vm/scripts/remote-provision.sh) — on purpose. The
+# intended Stage 4 lesson is credential reuse: the admin reused one
+# password for both the web app and the server itself. Finding it via
+# the IDOR is the whole exploit; there is no second, separate
+# vulnerability (earlier builds of this project used an admin-only
+# command-injection tool for this step -- removed by design).
 SEED_USERS = [
     {"username": "john", "password": "Summer2019!", "is_admin": False},
     {"username": "admin", "password": "N3tOps-Diag#7", "is_admin": True},
@@ -87,8 +95,8 @@ def seed_db(conn: sqlite3.Connection) -> None:
                 user_ids["john"],
                 "Handover notes",
                 "Reminder to self: finish migrating the internal tools "
-                "before I leave. Ask admin about the diagnostics access "
-                "if anything looks broken after the handover.",
+                "before I leave. Ask admin if anything looks broken "
+                "after the handover.",
             ),
         )
         # The designated administrative record (Section 9/11). It should
@@ -99,10 +107,10 @@ def seed_db(conn: sqlite3.Connection) -> None:
             (
                 user_ids["admin"],
                 "Admin handover record (internal use only)",
-                "Internal diagnostics console: /admin/diagnostics "
-                "(login as this account to use it). "
                 "Login for this account during the handover window: "
-                "admin / N3tOps-Diag#7 — rotate after the review.",
+                "admin / N3tOps-Diag#7 — rotate after the review. "
+                "(Same password on the server itself, saves remembering "
+                "two — never got around to rotating that either.)",
             ),
         )
     conn.commit()

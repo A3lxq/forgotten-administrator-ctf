@@ -1,16 +1,23 @@
 # Hint Sheet
 
 > Private. Give hints progressively — Level 1 first, Level 3 only if a
-> team is genuinely stuck. Matches the actual implementation (Phase 4).
+> team is genuinely stuck. Matches the actual implementation.
+>
+> These hints are genuine nudges toward the real flag in each stage —
+> they never hand it over outright. The decoys in the challenge content
+> itself work the opposite way: loud, prominent, easy to stumble on
+> fast. If a team submits a decoy, that's a sign they stopped
+> investigating the moment something looked flag-shaped — a good
+> moment to remind them decoys exist and are meant to be found quickly.
 
 ## Stage 1 — OSINT
 
 1. John has an online identity. What does his profile page link to?
 2. The same username appears in more than one place — correlate them.
-3. Check `project-page.html`'s footer, not just its changelog. Page
-   source, not just the rendered view — `profile.html` has more than
-   one "old" thing sitting on it too (one's a decoy, one's a password
-   for something nearby).
+3. Read `project-page.html`'s changelog line by line, not just the
+   obvious bits — one entry has the real flag woven into ordinary
+   text. (The prominent, boxed-off thing on `profile.html` is a decoy —
+   its format is a tell if you look closely at what it starts with.)
 
 ## Stage 2 — Metadata
 
@@ -40,15 +47,15 @@
 3. `GET /records/<id>` never checks that the record belongs to you —
    only that you're logged in at all. Try id `2`.
 
-## Stage 4 — Admin function / reverse shell
+## Stage 4 — Credential reuse
 
-1. The record you weren't supposed to see tells you how to log in as
-   something else, and what tool that account has access to.
-2. That tool runs a real system command with your input in it. What
-   happens if your input isn't just a hostname?
-3. `/admin/diagnostics`'s `host` field is concatenated into a shell
-   command. A `;` after a valid-looking host lets you run anything —
-   and it runs as the Linux `admin` account, not root.
+1. The record you weren't supposed to see gives you a login. Is a web
+   login the only place that password might work?
+2. This server has SSH. Whose password do you already have?
+3. `ssh admin@<vm>` with the password from the IDOR'd record. It's the
+   same password on both sides — the admin never got around to making
+   them different. That's the whole vulnerability; there's no second
+   exploit step.
 
 ## Stage 5 — Linux privilege escalation
 

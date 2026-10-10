@@ -2,9 +2,9 @@
   "_warning": "PRIVATE. Never place under app/static, app/templates, challenge-data served paths, or player-material.",
   "totals": {
     "genuine": 5,
-    "decoys": 10,
+    "decoys": 5,
     "genuine_encrypted": 3,
-    "decoy_encrypted": 5,
+    "decoy_encrypted": 3,
     "max_score": 800
   },
   "locations": {
@@ -76,26 +76,6 @@
       "decryption_method": "plaintext, no decryption needed"
     },
     {
-      "id": "d1b",
-      "classification": "decoy",
-      "stage": "1-osint",
-      "points": 0,
-      "encrypted": true,
-      "value": "FFLAG:deprecated_repo_link_a913",
-      "password": "legacyKey2016",
-      "decryption_method": "flagcrypto.py decrypt <password> <file> - (scrypt KDF + AES-256-GCM)"
-    },
-    {
-      "id": "d2a",
-      "classification": "decoy",
-      "stage": "2-metadata",
-      "points": 0,
-      "encrypted": false,
-      "value": "FFLAG:camera_test_shot_2017_cc41",
-      "password": null,
-      "decryption_method": "plaintext, no decryption needed"
-    },
-    {
       "id": "d2b",
       "classification": "decoy",
       "stage": "2-metadata",
@@ -104,16 +84,6 @@
       "value": "FFLAG:draft_scan_metadata_77b0",
       "password": "scanpass2017",
       "decryption_method": "flagcrypto.py decrypt <password> <file> - (scrypt KDF + AES-256-GCM)"
-    },
-    {
-      "id": "d3a",
-      "classification": "decoy",
-      "stage": "3-git-crypto",
-      "points": 0,
-      "encrypted": false,
-      "value": "FFLAG:legacy_test_flag_2018_3f09",
-      "password": null,
-      "decryption_method": "plaintext, no decryption needed"
     },
     {
       "id": "d3b",
@@ -132,26 +102,6 @@
       "points": 0,
       "encrypted": false,
       "value": "FFLAG:ticket_closed_wontfix_19d7",
-      "password": null,
-      "decryption_method": "plaintext, no decryption needed"
-    },
-    {
-      "id": "d4b",
-      "classification": "decoy",
-      "stage": "4-web-idor-admin",
-      "points": 0,
-      "encrypted": true,
-      "value": "FFLAG:backup_pre_rotation_88c5",
-      "password": "prerotate-2023",
-      "decryption_method": "flagcrypto.py decrypt <password> <file> - (scrypt KDF + AES-256-GCM)"
-    },
-    {
-      "id": "d5a",
-      "classification": "decoy",
-      "stage": "5-privesc-root",
-      "points": 0,
-      "encrypted": false,
-      "value": "FFLAG:old_root_memo_4b61",
       "password": null,
       "decryption_method": "plaintext, no decryption needed"
     },

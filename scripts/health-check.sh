@@ -35,6 +35,18 @@ check "materials route rejects path traversal" bash -c "
 check "forgotten-admin.service is active" bash -c "$SSH 'systemctl is-active forgotten-admin' | grep -q active"
 check "app runs as Linux 'admin', not root" bash -c "$SSH 'ps -o user= -C python3' | grep -qx admin"
 check "admin has no sudo rights" bash -c "$SSH 'sudo -u admin sudo -n -l' 2>&1 | grep -q 'password is required'"
+check "admin SSH password login works with the disclosed credential (Stage 4)" python3 -c "
+import pexpect, sys
+c = pexpect.spawn(\"ssh -p 2222 -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@127.0.0.1 'id'\", timeout=15)
+c.expect('password:')
+c.sendline('N3tOps-Diag#7')
+c.expect(pexpect.EOF)
+out = c.before.decode(errors='replace')
+sys.exit(0 if 'uid=1002(admin)' in out else 1)
+"
+check "john CANNOT SSH with a password (scoped to admin only)" bash -c "
+  ssh -p 2222 -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes john@127.0.0.1 'id' 2>&1 | grep -q 'Permission denied'
+"
 check "root login is disabled" bash -c "$SSH 'sudo passwd -S root' | grep -qE ' L | NP '"
 check "only expected ports are listening" bash -c "
   out=\$($SSH 'sudo ss -tlnp' 2>/dev/null)

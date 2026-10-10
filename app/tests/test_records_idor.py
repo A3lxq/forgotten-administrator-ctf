@@ -40,7 +40,7 @@ def test_john_can_access_admin_record_via_idor(app, client):
     # this would be 403/404, not 200 with admin's content.
     assert resp.status_code == 200
     assert b"Admin handover record" in resp.data
-    assert b"/admin/diagnostics" in resp.data
+    assert b"N3tOps-Diag#7" in resp.data  # the reused admin credential
 
 
 def test_anonymous_cannot_access_any_record(client):

@@ -31,12 +31,10 @@ of the web app's `/materials/` page.)
 - `git` for Stage 3 — `git log`, `git show`, `git log --diff-filter=D`
   are your friends.
 - A web browser or `curl` for Stage 4.
-- A listener (e.g. `nc -lvnp <port>`) for when you get a shell back
-  from the server — you are not given SSH access to this box at any
-  point; the intended path is to make the application give you a shell.
-  Ask your instructor which address the server can reach your listener
-  on — it is usually **not** `127.0.0.1` from the server's own point of
-  view.
+- An SSH client for Stage 4's follow-through — once you find the right
+  credential, you SSH straight into the box with it. No separate
+  listener or shell-catching step; ask your instructor for the server's
+  address if it isn't the same one the web app is on.
 
 ## Where to start
 

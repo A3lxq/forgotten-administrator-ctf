@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+### Addendum — credential reuse instead of reverse shell; 5 decoys
+- Removed the `/admin/diagnostics` command-injection vulnerability
+  entirely. Stage 4's second "vulnerability" is now credential reuse:
+  the IDOR-disclosed admin web password is also the Linux `admin`
+  account's real SSH password, with password auth scoped to that one
+  account via an sshd `Match User admin` block.
+- Verified live with `pexpect`-driven password SSH login (admin works,
+  john is rejected), and ran the entire Flag4→privesc→Flag5 chain in
+  one real SSH session with zero instructor `sudo`.
+- Found and fixed a real bug: `rsync -a` propagated the local staging
+  directory's own permissions onto `/root` itself, loosening it from
+  700 to 775. Fixed with `--no-perms` plus an unconditional `chmod`
+  safeguard; re-verified.
+- Reduced decoys from 10 to 5 (one per stage, mixed plaintext/
+  encrypted). `validate_flags.py`/`author_flags.py` updated; all
+  checks re-pass (10 total flags now, not 15).
+- Rebalanced decoy/genuine content: decoys are now loud and enticing
+  (boxed callouts, "found a flag!" framing, prominent positioning),
+  genuine flags are quiet (blended into ordinary prose, require
+  reading).
+- Updated player-material, instructor-material, vm/networking.md,
+  vm/README.md, and root README.md to match.
+
 ### Addendum — self-contained player materials
 - New `materials.py` blueprint serves Stage 1-3 content directly from
   the app, unauthenticated, at `/materials/` — no separate handout

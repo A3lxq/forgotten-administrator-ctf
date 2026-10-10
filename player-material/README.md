@@ -12,5 +12,6 @@ Read in this order:
    where to start.
 4. [`Flag-Submission.md`](Flag-Submission.md) — flag format and scoring.
 
-There are 5 real flags (800 points total) and 10 decoys (0 points, but
-genuinely findable — not bugs). Good luck.
+There are 5 real flags (800 points total) and 5 decoys (0 points, but
+genuinely findable — not bugs, and usually the faster, easier-looking
+find in each stage). Good luck.

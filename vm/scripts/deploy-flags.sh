@@ -39,14 +39,28 @@ echo "== Placing them with correct ownership/permissions =="
 ssh "${SSH_OPTS[@]}" "$HOST" bash -s <<'REMOTE'
 set -euo pipefail
 sudo mkdir -p /home/admin/evidence /home/admin/flags /root
-sudo cp /tmp/flag-staging/admin-evidence/* /home/admin/evidence/
-sudo cp /tmp/flag-staging/admin-flags/* /home/admin/flags/
-sudo cp /tmp/flag-staging/root/* /root/
+# rsync --delete (not cp) for the two flag/evidence dirs: a file removed
+# from the staged source (e.g. after reducing the decoy set) must
+# actually disappear here too, not linger as a stale leftover. NOT
+# --delete for /root -- that's root's actual home directory (.bashrc,
+# .ssh, etc. live there too); only add/update the staged files, never
+# remove something this script didn't put there.
+sudo rsync -a --no-perms --delete /tmp/flag-staging/admin-evidence/ /home/admin/evidence/
+sudo rsync -a --no-perms --delete /tmp/flag-staging/admin-flags/ /home/admin/flags/
+sudo rsync -a --no-perms --chmod=D755,F644 /tmp/flag-staging/root/ /root/
+# `rsync -a` (without --no-perms) copies the LOCAL staging directory's
+# own mode onto the pre-existing destination directory too -- it
+# silently loosened /root itself from 700 to the staging dir's 775 the
+# first time this ran. --no-perms stops that; the explicit chmod 700
+# below is kept anyway as a hard, unconditional safeguard regardless
+# of how the copy happened.
+sudo chmod 700 /root
 # Glob expansion for paths under directories ctfbuilder itself can't read
 # (evidence/flags are mode 750 admin:admin) must happen INSIDE the root
 # shell, not in ctfbuilder's shell before sudo runs -- otherwise the `*`
 # never expands and chmod gets a literal, nonexistent "...*" path.
 sudo bash -c 'chown -R admin:admin /home/admin/evidence /home/admin/flags &&
+              chmod 750 /home/admin/evidence /home/admin/flags &&
               chmod 640 /home/admin/evidence/* /home/admin/flags/* &&
               chown -R root:root /root &&
               chmod 600 /root/final_evidence.enc /root/old_evidence.enc /root/root_note.txt'

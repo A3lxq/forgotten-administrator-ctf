@@ -13,8 +13,10 @@
 | Original Flag 5 | 5 — Privesc/root | 250 | yes |
 | **Total** | | **800** | |
 
-Decoys (10, `FFLAG:...`) always score 0, regardless of which one a team
-submits.
+Decoys (5, `FFLAG:...`, one per stage) always score 0, regardless of
+which one a team submits. They're deliberately the loud, fast find in
+each stage — a team that submits one quickly isn't being penalized for
+exploring, just reminded to keep digging.
 
 ## Validating submissions
 
@@ -22,8 +24,8 @@ Run the local validator any time:
 ```
 ./scripts/validate-flags.sh
 ```
-It checks: exact counts (5 genuine / 10 decoy), encryption distribution
-(3 genuine + 5 decoy encrypted = 8 total), uniqueness, format, that
+It checks: exact counts (5 genuine / 5 decoy), encryption distribution
+(3 genuine + 3 decoy encrypted = 6 total), uniqueness, format, that
 every encrypted flag actually decrypts with its recorded password and
 rejects a wrong one, and that the max score is 800. See
 `flag-manifest.json` for the authoritative values (private — never copy

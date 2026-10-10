@@ -405,6 +405,70 @@ time: **no, not yet** — Stage 1-3 content only existed as a separate
   reference the live `/materials/` URLs), `instructor-material/
   security-review.md` (new row for this surface), `SETUP.md`.
 
+## Addendum 2 — credential reuse instead of reverse shell; 5 decoys instead of 10
+
+Per owner request: replaced Stage 4's command-injection/reverse-shell
+mechanism, and reduced the decoy count.
+
+**Stage 4 mechanism change:**
+- Removed `app/forgotten_admin/admin.py` (the `/admin/diagnostics`
+  command-injection route), its template, and its 4 tests entirely —
+  not just the reverse-shell step, the whole vulnerability. Stage 4's
+  "second vulnerability" is now credential reuse: the admin web
+  password disclosed via the IDOR is also, by design, the Linux
+  `admin` account's real SSH password.
+- `vm/scripts/remote-provision.sh` now: `chpasswd`s `admin` to match
+  the web password, and adds
+  `/etc/ssh/sshd_config.d/90-admin-password-auth.conf` (an sshd
+  `Match User admin` block) so password auth is enabled for that one
+  account only — every other account stays key-only/disabled.
+- Verified live with `pexpect` (genuine password-prompt automation, not
+  a `sudo` proxy): `admin` logs in with the disclosed password → `id`
+  → `uid=1002(admin)`. `john`, tried the same way with his own real
+  password, → `Permission denied (publickey)` — password auth isn't
+  even offered to him. Ran the **entire** chain (decrypt Flag 4 →
+  enumerate cron → exploit the group-writable script → wait for the
+  real cron tick → `euid=0` → decrypt the final artifact → Flag 5) in
+  one continuous SSH session opened this way, no instructor `sudo`
+  anywhere in it.
+- `health-check.sh` gained 2 permanent checks for this (admin password
+  login works; john's is rejected).
+
+**A real permissions bug found and fixed while doing this:** after
+reducing the decoy set, `deploy-flags.sh`'s `cp`-based copy left a
+stale decoy file (`original_flag_4_backup.enc`) behind on the VM, and
+switching to `rsync -a` to fix that **silently loosened `/root` itself
+from mode `700` to `775`** — `rsync -a` propagates the *local staging
+directory's* own permission bits onto an already-existing destination
+directory. Caught by actually reading the `ls -la /root` output rather
+than assuming the copy was equivalent to the old `cp`. Fixed with
+`--no-perms` on every affected `rsync` call plus an unconditional
+`chmod 700 /root` / `chmod 750` on the evidence dirs as a hard
+safeguard regardless of how the copy happens. Re-verified live.
+
+**Decoys: 10 → 5 (one per stage).** Kept one plaintext + building a mix
+across stages (`d1a`, `d4a` plaintext; `d2b`, `d3b`, `d5b` encrypted —
+3 encrypted decoys now, not 5). `scripts/validate_flags.py` and
+`scripts/author_flags.py` updated accordingly; `validate-flags.sh`
+re-passes all checks (10 total flags now, not 15).
+
+**Decoy/genuine "obviousness" balance (owner request):** decoys are
+now deliberately loud — boxed/highlighted callouts, "found a flag!"
+framing, passwords that announce themselves, positioned first or
+closer to the surface (e.g. the Stage 3 decoy commit sits one commit
+closer to `HEAD` than the genuine one, so a player scanning `git log`
+hits it first). Genuine flags are deliberately quiet — blended into
+ordinary prose (e.g. Flag 1 is now inside a changelog sentence, not a
+separate "Build fingerprint:" line) and require actually reading, not
+skimming. Verified live that this doesn't change discoverability of
+the genuine path, only its obviousness relative to the decoy.
+
+Docs updated to match: `player-material/{Getting-Started,Story,
+Flag-Submission,README}.md`, `instructor-material/{instructor-guide,
+hint-sheet,solution-walkthrough,security-review,scoring-guide,
+acceptance-test-report}.md`, `vm/{README,networking}.md`, root
+`README.md`.
+
 ## Outstanding items requiring the project owner
 
 1. **Install VM build tooling** (needs sudo password, interactive):

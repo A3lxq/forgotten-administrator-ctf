@@ -42,11 +42,12 @@ cd vm
 |--------------|-------------------------------------------------------|--------------|
 | `ctfbuilder` | Instructor-only provisioning/maintenance             | SSH key only |
 | `john`       | Story character (departed developer)                  | console password only, no SSH |
-| `admin`      | Runs the vulnerable web app (Section 10's target)      | console password only, no SSH |
+| `admin`      | Runs the vulnerable web app; the Stage 4 target        | SSH password (scoped to this account only, via an sshd `Match User admin` block — see `remote-provision.sh`), console password |
 | `root`       | — | disabled (`disable_root: true`); no direct login |
 
-Players never get SSH credentials for any of these. The intended path to
-an `admin`-level shell is entirely through the web application's
-vulnerabilities (Phase 2), landing in a process already running as the
-Linux `admin` account — see `instructor-material/solution-walkthrough.md`
-(Phase 7) for the verified end-to-end path.
+Players are never handed any of these credentials directly. The
+intended path to `admin` is: find the password via the web app's IDOR,
+then `ssh admin@<vm>` with it — the same password is deliberately
+reused on both sides (Stage 4's "second vulnerability" is credential
+reuse, not code). See `instructor-material/solution-walkthrough.md`
+for the verified end-to-end path.

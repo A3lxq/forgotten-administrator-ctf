@@ -15,7 +15,10 @@ users:
   app itself.
 - **Linux (operating system) accounts**: `john`, `admin`, and `root` —
   separate identities on the actual server. A web login as "admin" is
-  **not** the same thing as being the Linux `admin` user.
+  **not automatically** the same thing as being the Linux `admin`
+  user — they're different accounts, maintained by different parts of
+  the system. Whether the administrator was ever careful about keeping
+  them separate is a different question.
 
 Something in the application was never fixed after John left. The
 administrator's own account has evidence of this — and of what happened
