@@ -74,3 +74,38 @@ it's stuck.
 
 **Fix:** use `-display none` (plus `-serial file:...` for console
 logging) instead of `-nographic` when also passing `-daemonize`.
+
+## `rsync -a` silently loosened `/root` from mode `700` to `775`
+
+**Symptom:** after switching `deploy-flags.sh` from `cp` to
+`rsync -a --delete` (to properly remove a decoy file that had been
+dropped from the staged source — `cp` doesn't delete stale files, so a
+removed decoy kept lingering on the VM), `/root` itself came out as
+`drwxrwxr-x` (775) instead of the intended `drwx------` (700). Caught
+by actually reading `ls -la /root`'s output rather than assuming the
+swap from `cp` to `rsync` was behavior-equivalent.
+
+**Cause:** `rsync -a` includes `-p` (preserve permissions) for every
+directory it touches — including the *pre-existing destination
+directory itself* when syncing `src/` into an already-existing `dest/`
+with trailing slashes on both sides. The local staging directory
+(`vm/flag-staging/root/`, created by Python's `Path.mkdir()` under this
+build's umask) had mode `775`, and that got copied onto `/root` on the
+VM, which already existed with its own, different, correct mode `700`.
+`cp` had never done this because it only touches the directory
+*contents*, never resets a pre-existing destination directory's own
+mode.
+
+**Fix:** added `--no-perms` to every `rsync` call in `deploy-flags.sh`
+that targets a pre-existing directory (`/home/admin/evidence`,
+`/home/admin/flags`, `/root`), plus an unconditional `chmod 700 /root`
+/ `chmod 750` on the evidence dirs right after, as a hard safeguard
+that doesn't depend on getting `rsync`'s flags right. Re-verified live
+and on an independently-booted copy of the exported VM image.
+
+**Lesson:** when swapping `cp` for `rsync -a` (or vice versa) to fix
+one specific gap (here: stale-file cleanup), don't assume the two are
+otherwise equivalent — `rsync -a`'s archive mode touches far more
+(permissions, timestamps, the destination directory entry itself) than
+a plain recursive copy does. Check the *destination's own* metadata
+after the change, not just its contents.
