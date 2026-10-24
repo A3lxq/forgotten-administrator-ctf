@@ -159,6 +159,47 @@ virtual hardware" comes up — the actual written config settles it in
 one command, where guessing (NIC type? chipset? promiscuous mode?)
 can burn a lot of time on the wrong theory.
 
+## `netplan apply` with `match: {}` hangs the VM's networking entirely
+
+**Symptom:** tried upgrading the name-prefix netplan fix above (`match:
+{name: "en*"}`) to something theoretically even more robust — `match:
+{}`, which matches every ethernet device regardless of name or MAC, to
+rule out any naming-scheme edge case entirely. Running
+`sudo netplan apply` with that config over the SSH session on the
+*same* interface never returned; the session hung, and the VM stopped
+responding on every forwarded port (SSH, the web app) for the rest of
+that boot. Confirmed it wasn't a shell-quoting fluke by retrying with
+a clean, non-heredoc command via a background job with its own
+timeout — it hung identically both times.
+
+**Cause (observed behavior, exact systemd-networkd internals not
+fully diagnosed):** applying a netplan change that matches *every*
+ethernet device appears to bounce/renumber the interface in a way
+that QEMU's SLIRP (user-mode NAT) can't recover the existing
+port-forwarded TCP session through. The VM itself stayed up at the
+hypervisor level (`info status` in the QEMU monitor reported
+`running`), but was unreachable on the network for 45+ minutes with
+only ~15% average CPU use — not consistent with it being merely busy,
+consistent with a stuck/confused network stack.
+
+**Fix:** reverted to the name-prefix match (`match: {name: "en*"}`),
+which had already been separately verified working (applies cleanly,
+survives a real reboot, works on the independently-booted exported
+OVA). Recovered the hung VM by restoring the `clean-start` qemu
+snapshot taken just before the experiment, rather than waiting
+indefinitely or trying to debug a guest with no console input path
+available (this VM runs `-display none` with serial output only, so
+there's no way to type into it if the network is the only thing down).
+
+**Lesson:** a broader/more "robust-looking" match rule is not
+automatically safer — it changed *which* devices netplan reconfigures,
+and reconfiguring the device carrying your current remote session is
+exactly the scenario most likely to go wrong. Don't swap a verified
+fix for an untested "improvement" on a live, hard-to-recover session;
+test configuration changes that touch networking from a path you're
+not currently depending on (e.g. the console, or a throwaway VM),
+not through the connection the change itself might affect.
+
 ## OVF descriptor's `VirtualSCSI` controller was never actually tested against real VirtualBox/VMware
 
 **Symptom:** no specific error observed, but noted as a risk while

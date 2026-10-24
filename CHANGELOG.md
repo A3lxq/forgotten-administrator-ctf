@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Addendum — netplan `match: {}` regression found and reverted; credentials doc added
+- Tried broadening the netplan fix to `match: {}` (any ethernet
+  device); it hung the VM's networking when applied (confirmed twice,
+  not a shell-quoting issue). Reverted to the already-verified
+  `match: {name: "en*"}` fix, which is what `ova-export-v4` already
+  has — no rebuild needed.
+- Recovered the hung VM via the `clean-start` snapshot (no console
+  input path exists on this headless VM).
+- Added `instructor-material/credentials.md`: direct-access reference
+  (ctfbuilder SSH + sudo -i, story-account passwords, reset commands),
+  every command verified against the live VM.
+- New troubleshooting.md entry for the hang.
+
 ### Addendum — fixed two real cross-hypervisor bugs (VirtualBox)
 - Root cause of "no network under VirtualBox NAT or Bridged":
   cloud-init's netplan was MAC-pinned to QEMU's virtio NIC MAC.

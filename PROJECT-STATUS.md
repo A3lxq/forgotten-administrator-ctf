@@ -529,6 +529,47 @@ create` step itself needs the owner to run it (or approve it).
 Docs updated: `instructor-material/troubleshooting.md` (new entries,
 same Symptom/Cause/Fix format as the rest of the file).
 
+## Addendum 5 — tried a broader netplan fix, it hung the VM; reverted; added instructor credentials doc
+
+Owner asked to make the DHCP fix accept *any* MAC VirtualBox assigns
+(already true of Addendum 4's fix) and requested a consolidated
+instructor credentials reference.
+
+**Tried `match: {}` (match every ethernet device, not just `en*`-named
+ones) as a theoretically more robust version of Addendum 4's fix.**
+Applying it via `netplan apply` over the SSH session on the same
+interface hung that session and left the VM unreachable on every
+forwarded port for 45+ minutes (confirmed not just busy: `info status`
+in the QEMU monitor showed `running`, but only ~15% average CPU —
+inconsistent with genuine background load, consistent with a stuck
+network stack). Confirmed it wasn't a shell-quoting artifact by
+retrying with a clean non-heredoc command via a backgrounded job with
+its own timeout; it hung identically both times. No console input
+path exists on this VM (`-display none`, serial output-only), so
+there was no way to intervene directly — recovered by restoring the
+`clean-start` snapshot taken minutes earlier.
+
+**Reverted to the Addendum 4 fix** (`match: {name: "en*"}`), which was
+already separately verified: applies cleanly, survives a real reboot,
+and is what's already baked into `ova-export-v4` (built and verified
+*before* this detour — unaffected by it, no rebuild needed).
+`vm/cloud-init/network-config.yaml` now documents why the broader
+match was tried and reverted, so it isn't re-attempted blind later.
+
+**Added `instructor-material/credentials.md`**: a single reference
+for getting into the box directly (any deployment: dev VM or an
+imported OVA) without completing the CTF — `ctfbuilder` SSH + `sudo
+-i` for a root shell, the `john`/`admin` story-account passwords for
+completeness, reset commands, and what to do with a pre-built OVA you
+don't have the matching key for. Every command in it was actually run
+against the live VM and its real output checked — including catching
+and fixing a syntax bug in my first draft (`sudo -i -c` isn't valid;
+confirmed the working form is `sudo bash -c "..."`).
+
+Still blocked on the owner's side (unchanged from Addendum 4): `git
+push` and uploading `ova-export-v4` as a GitHub release, both denied
+by the harness's auto-mode classifier this session.
+
 ## Outstanding items requiring the project owner
 
 1. **Install VM build tooling** (needs sudo password, interactive):
