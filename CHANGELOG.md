@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Addendum — fixed two real cross-hypervisor bugs (VirtualBox)
+- Root cause of "no network under VirtualBox NAT or Bridged":
+  cloud-init's netplan was MAC-pinned to QEMU's virtio NIC MAC.
+  Added `vm/cloud-init/network-config.yaml` (match by interface name,
+  not MAC), wired into `create-disk.sh`; patched and re-verified the
+  live dev VM.
+- Switched `export-ova.sh`'s OVF disk controller from a VMware-style
+  `VirtualSCSI` (never validated against real VirtualBox) to plain
+  IDE (`PIIX4`), universally supported.
+- Investigated a reported recovery-mode password-persistence issue;
+  ruled out as a disk-image bug via a direct reboot test (byte-
+  identical shadow hash before/after). Likely a recovery-mode
+  read-only-root gotcha instead — documented as a hypothesis.
+- Re-verified everything on a fresh snapshot and on the actual
+  re-exported OVA, booted independently.
+- New `troubleshooting.md` entries for all of the above.
+- OVA upload (`ova-export-v4`) pending owner approval — blocked by the
+  harness's auto-mode classifier for creating a new public GitHub
+  release; the built file is ready in `vm/dist/`.
+
 ### Addendum — hint-sheet.md removed
 - Deleted `instructor-material/hint-sheet.md` (owner request); removed
   its reference from `instructor-guide.md`'s document map.

@@ -1,0 +1,22 @@
+# Explicit network-config for the NoCloud datasource.
+#
+# Without this, cloud-init's fallback network generator writes a
+# netplan config that MATCHES BY MAC ADDRESS of whatever NIC happened
+# to be present at first boot (see troubleshooting.md: "netplan is
+# MAC-pinned to the first hypervisor's NIC"). That breaks completely
+# the moment the disk is booted under a different hypervisor (e.g.
+# this image built under QEMU, then imported into VirtualBox) --
+# VirtualBox assigns its own different MAC, the MAC-pinned rule never
+# matches, and the interface never gets DHCPed, under ANY VirtualBox
+# networking mode (NAT or Bridged alike).
+#
+# Matching by interface NAME prefix instead of MAC makes this
+# hardware/hypervisor-agnostic: any virtio-net, e1000, or other NIC
+# that gets a predictable "en*"-style name works identically.
+version: 2
+ethernets:
+  all-en:
+    match:
+      name: "en*"
+    dhcp4: true
+    dhcp6: true

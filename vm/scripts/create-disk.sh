@@ -33,7 +33,12 @@ echo "== Creating writable overlay disk ($DISK_SIZE) from base image =="
 qemu-img create -f qcow2 -F qcow2 -b "$(pwd)/$BASE_IMAGE" "$DISK" "$DISK_SIZE"
 
 echo "== Building cloud-init seed image =="
-cloud-localds "$SEED" cloud-init/user-data.yaml cloud-init/meta-data.yaml
+# -N supplies an explicit, hardware-agnostic network-config (match by
+# interface name, not MAC) -- without it, cloud-init's fallback network
+# generator MAC-pins to whatever NIC is present at this first boot,
+# which breaks the moment the disk is later imported into a different
+# hypervisor (see troubleshooting.md).
+cloud-localds -N cloud-init/network-config.yaml "$SEED" cloud-init/user-data.yaml cloud-init/meta-data.yaml
 
 echo "Done."
 echo "Disk:  $DISK"

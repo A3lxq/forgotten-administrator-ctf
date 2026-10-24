@@ -476,6 +476,59 @@ request). Removed its row from `instructor-guide.md`'s document map.
 History still in git if it's ever wanted back. No code or test
 depended on this file, so nothing else needed to change.
 
+## Addendum 4 — fixed two real cross-hypervisor bugs found testing on real VirtualBox
+
+Owner reported: imported the OVA into VirtualBox, networking never
+came up under NAT *or* Bridged, and a password changed via GRUB
+recovery mode didn't survive a reboot. This image had only ever been
+tested under QEMU before — this was genuinely new information.
+
+**Root cause, found by reading the actual on-disk config rather than
+guessing further:** `/etc/netplan/50-cloud-init.yaml` was pinned to
+the exact MAC address of the original QEMU virtio NIC
+(`match: {macaddress: "52:54:00:12:34:56"}`) — cloud-init's fallback
+network generator writes this when no explicit `network-config` is
+supplied. VirtualBox's virtual NIC gets a different MAC, the rule
+never matches, DHCP never runs — identically under NAT or Bridged,
+since the bug is entirely guest-side.
+
+**Fixed:**
+- Added `vm/cloud-init/network-config.yaml` (match by interface
+  *name*, `en*`, not MAC) and wired it into `create-disk.sh` via
+  `cloud-localds -N`, so future from-scratch builds get this right.
+- Patched the already-provisioned dev VM's netplan file directly and
+  confirmed it kept working (`netplan apply`, SSH stayed reachable).
+- Also fixed, proactively: `export-ova.sh`'s hand-written OVF
+  descriptor declared a VMware-style `VirtualSCSI` disk controller
+  that was never actually validated against real VirtualBox (no
+  VirtualBox available in this build environment). Switched to plain
+  IDE (`PIIX4`) — universally, unambiguously supported.
+
+**Investigated and ruled out as a disk-persistence bug:** the
+password-not-persisting symptom. Tested directly on the dev VM
+(unrelated to VirtualBox): set a test password, captured its shadow
+hash, issued a real reboot, compared — byte-identical. This image's
+filesystem persistence is fine. Likely explanation, stated as a
+hypothesis (not confirmed — would need the owner's VirtualBox session
+to verify): Ubuntu recovery mode often mounts `/` read-only until you
+`mount -o remount,rw /` first.
+
+**Re-verified everything** on a fresh clean-start snapshot, then on
+the actual re-exported OVA booted independently (isolated ports, disk
+untouched): netplan is name-matched not MAC-pinned, `admin` SSH
+password login works, `/materials/` still self-contained,
+`health-check.sh` all green.
+
+**Not yet done:** uploading the new OVA (`ova-export-v4`) as a GitHub
+release — blocked by the harness's own auto-mode classifier
+("Create Public Surface"), which requires the user's explicit
+approval for this specific action. The built, checksummed, verified
+`.ova` is sitting in `vm/dist/` ready to upload; only the `gh release
+create` step itself needs the owner to run it (or approve it).
+
+Docs updated: `instructor-material/troubleshooting.md` (new entries,
+same Symptom/Cause/Fix format as the rest of the file).
+
 ## Outstanding items requiring the project owner
 
 1. **Install VM build tooling** (needs sudo password, interactive):
