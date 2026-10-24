@@ -570,6 +570,80 @@ Still blocked on the owner's side (unchanged from Addendum 4): `git
 push` and uploading `ova-export-v4` as a GitHub release, both denied
 by the harness's auto-mode classifier this session.
 
+## Addendum 6 — timed solve, LLM skill files + blind-test, a real leaked-solution bug, Bridged multi-player hosting
+
+Owner's task: solve the box myself (timed, tools reported), reset
+after, write `llm-skills/` for other LLM agents to use, and actually
+test those files rather than just writing them.
+
+**My own solve**: all 5 genuine + 5 decoy flags, full tool list
+reported directly to the owner.
+
+**`llm-skills/`**: 7 methodology-only files (`osint-recon.md`,
+`metadata-forensics.md`, `git-history-forensics.md`,
+`web-idor-testing.md`, `credential-reuse.md`,
+`linux-privesc-enum.md`, `crypto-tooling.md`) plus an index
+(`SKILLS.md`) — no flag values, no passwords, technique only.
+
+**Blind-tested with a real subagent**, not just written and assumed
+correct — it had no access to this project's own materials beyond the
+skill files and the documented player starting point. It solved
+Stages 1–3 cleanly on the first pass. It got stuck at Stage 4 on the
+first pass — root-caused to a flaw in how *I'd* scoped the test (I'd
+also excluded `player-material/Getting-Started.md`, the legitimate,
+non-spoiling starting credential every real player is handed, not a
+puzzle answer). Resumed it with that corrected, fixed starting point;
+it then solved Stages 4–5 cleanly too and rated every skill file
+"spot on" or "very good" for its stage, with one real, substantive
+piece of feedback: `crypto-tooling.md`'s warning that a decrypted
+plaintext — not the password used to get it — can be the password for
+a *later* file was, in its own words, "the single most important line
+in the whole skill set," since Stage 5's final password actually is
+Stage 3's genuine flag text.
+
+**Found and fixed a real bug while verifying the post-solve reset**,
+not something anyone asked me to look for: `admin`'s SSH shell history
+had accumulated the exact Stage 4→5 exploit chain — both passwords and
+the final decrypt command — from every prior live-verification pass
+that had logged in as `admin` and run it, because nothing had ever
+cleared it before a `clean-start` snapshot was taken. **Checked the
+already-published `ova-export-v4` independently** (booted its own
+qcow2 via a disposable overlay, no changes to the real file) and
+confirmed it had the identical leak — any player who checked their own
+shell history got the whole back half of the puzzle handed to them.
+Root cause of why my first truncation attempt didn't stick: a
+lingering `admin` SSH session from the blind-test subagent's run was
+still alive when I truncated the file, and the graceful VM shutdown
+(`system_powerdown`) let that shell's normal exit-time history flush
+silently undo the truncation before the snapshot was taken. Fixed
+properly with `unset HISTFILE` in `admin`'s `~/.bashrc` (not just a
+one-time truncate), verified it holds across a real login+logout on
+both the dev VM and the re-exported OVA, re-took `clean-start`,
+re-ran `health-check.sh` (13/13 green).
+
+Owner chose to delete `ova-export-v4` outright rather than just flag
+it; published `ova-export-v5` with the fix. Checksum-verified the
+uploaded asset against the local build — byte-identical.
+
+**Added supported Bridged-adapter hosting**, per explicit owner
+request for workshop/multi-player delivery over a trusted LAN — an
+operator-accepted-risk alternative to the existing NAT/port-forward
+single-host setup, not a replacement for it. No guest-side change was
+needed: the app and sshd already bind to all interfaces
+(`remote-provision.sh`, pre-existing), and the Addendum-4 DHCP fix is
+already interface-name-based rather than MAC-pinned, so it's correct
+under either adapter mode without modification. Documented in
+`SETUP.md` (new "Hosting for multiple players (Bridged adapter)"
+section, with an explicit risk note: only a trusted workshop-only LAN,
+never a shared/public network, never forwarded to the internet) and
+in `instructor-material/security-review.md` (distinguishing this
+project's own build/dev-host isolation posture, unchanged, from this
+new operator-chosen deployment option for the distributed OVA).
+
+`git push` and `gh release create`, both blocked in Addenda 4–5,
+succeeded this session after the owner adjusted their local
+permissions.
+
 ## Outstanding items requiring the project owner
 
 1. **Install VM build tooling** (needs sudo password, interactive):

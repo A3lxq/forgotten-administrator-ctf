@@ -236,3 +236,46 @@ against a read-only root, the change could appear to succeed but never
 actually reach disk. If this recurs: run that remount command first,
 and separately check `mount | grep ' / '` to confirm the root
 filesystem's actual mount mode before assuming a deeper problem.
+
+## `admin`'s `.bash_history` leaks the Stage 4→5 solution, and a plain `truncate` doesn't reliably fix it
+
+**Symptom:** `cat /home/admin/.bash_history` as `admin` (or `sudo cat`
+as `ctfbuilder`) shows the exact Stage 4→5 exploit chain — both
+passwords and the final `flagcrypto.py decrypt` command — even
+immediately after a fresh `clean-start` snapshot restore. This was
+present in the published `ova-export-v4` release too (confirmed by
+booting that exact file independently via a disposable
+`qemu-img create -b` overlay and checking).
+
+**Cause:** every prior live-verification pass (mine, and a blind-test
+subagent's) that logged in as `admin` over SSH and ran the intended
+exploit chain left those commands in bash's normal history buffer.
+Nothing ever cleared `HISTFILE` before the `clean-start` snapshot was
+taken, so it got baked in permanently. A `sudo truncate -s 0
+/home/admin/.bash_history` run right before snapshotting is **not
+sufficient on its own**: if any `admin` SSH session from earlier
+testing is still alive (even an apparently-finished one, if the
+process never actually exited), that shell is holding the *old*
+history in memory from when it started. A `system_powerdown`-based
+clean shutdown lets systemd terminate that lingering session somewhat
+gracefully, which triggers bash's normal exit-time history flush —
+silently overwriting the truncation with the old content before the
+disk is ever snapshotted. This happened to me once: truncate showed
+`0`, but after stop → snapshot → reboot, the file was back to its old
+7 lines.
+
+**Fix:** two parts, both needed.
+1. Before truncating, confirm no `admin` session is actually still
+   alive: `who` / `w` / `ps -u admin -f` on the VM. If one is, make
+   sure it's actually gone (not just assumed finished) before
+   touching the history file.
+2. Don't rely on a one-time truncate surviving future sessions anyway
+   — add `unset HISTFILE` to the end of `admin`'s `~/.bashrc` so no
+   future interactive session (yours during testing, or a player's
+   during the real CTF) ever writes to it again. Truncate the existing
+   file once after adding that line, then verify empty, *then*
+   snapshot.
+
+Re-verify after any reset by actually logging in as `admin`, running a
+command, logging out, and checking the history file is still `0`
+lines — not just checking it once before the snapshot.

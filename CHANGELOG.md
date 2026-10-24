@@ -2,6 +2,41 @@
 
 ## Unreleased
 
+### Addendum — timed solve, LLM skill files + blind-test, leaked-history bug found and fixed, Bridged multi-player hosting added
+- Solved the box myself end-to-end (all 5 genuine + 5 decoy flags),
+  timed, with full tool list.
+- Wrote `llm-skills/` — 7 methodology-only skill files (OSINT,
+  metadata forensics, git history forensics, web IDOR testing,
+  credential reuse, Linux privesc enumeration, crypto tooling), no
+  flag values or passwords. Validated with a real blind-test subagent
+  that solved all 5 stages using only these files plus the documented
+  starting foothold; rated every skill file "spot on" for its stage.
+  One test-design flaw found and fixed along the way: the first
+  blind-test run was incorrectly denied the legitimate
+  `Getting-Started.md` starting credential, not a flaw in the box or
+  the skills.
+- **Found and fixed a real solution leak**: `admin`'s SSH shell
+  history had been accumulating the exact Stage 4→5 exploit chain
+  (both passwords, the final decrypt command) from every prior
+  live-verification pass, readable by that same account. **Confirmed
+  this was already baked into the published `ova-export-v4` release**
+  by booting it independently. Fixed with `unset HISTFILE` in
+  `admin`'s `.bashrc`, re-verified across a real login+logout, clean
+  snapshot re-taken, full `health-check.sh` re-pass.
+- Owner decided v4 should come down rather than just being flagged;
+  deleted it and published `ova-export-v5` with the fix.
+- **Added supported Bridged-adapter hosting** for running this as a
+  shared multi-player/workshop box over a trusted LAN (explicit,
+  risk-accepted operator choice), alongside the existing NAT/
+  port-forward single-host setup. No guest-side change was needed —
+  the app and sshd already bind to all interfaces, and the DHCP fix
+  below is already interface-name-based. Documented in `SETUP.md`
+  (new "Hosting for multiple players" section) and
+  `instructor-material/security-review.md`.
+- `git push` and `gh release create`, previously denied by the
+  harness's auto-mode classifier, both succeeded this session after
+  the owner adjusted permissions on their end.
+
 ### Addendum — netplan `match: {}` regression found and reverted; credentials doc added
 - Tried broadening the netplan fix to `match: {}` (any ethernet
   device); it hung the VM's networking when applied (confirmed twice,
