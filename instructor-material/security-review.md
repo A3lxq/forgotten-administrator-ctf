@@ -8,11 +8,12 @@
 
 | Check | Status | Evidence |
 |---|---|---|
-| No bridged networking | ✅ confirmed | `boot-vm.sh` uses `-netdev user` (QEMU usermode NAT/SLIRP) only; no `-netdev bridge`, no `-netdev tap` anywhere in the scripts. |
-| No public interface exposure | ✅ confirmed | Forwarded ports are bound to `127.0.0.1` only (`hostfwd=tcp:127.0.0.1:2222-:22`, `...:8080-:8000`), not `0.0.0.0`. |
-| Only the intended ports are forwarded | ✅ confirmed | Exactly two: SSH (instructor-only) and the web app. No other guest port is reachable from the host. |
-| App bound to a specific port, not wide open | ✅ confirmed | App listens on guest `0.0.0.0:8000` — guest-internal only; external reachability is controlled entirely by the hostfwd rule above, not by the app itself. |
-| Tested on a real multi-host lab network (not just this single dev host) | ⚠️ **not yet tested** | Everything so far was verified on one machine (loopback hostfwd). `vm/networking.md` documents what to change (bind to the lab interface IP, not `127.0.0.1`) but that specific multi-host configuration has not been exercised end-to-end. |
+| No bridged networking on the *build/dev* host | ✅ confirmed | `boot-vm.sh` uses `-netdev user` (QEMU usermode NAT/SLIRP) only; no `-netdev bridge`, no `-netdev tap` anywhere in the scripts. This row covers how this project's own dev VM is built/tested, not how an operator may choose to run the exported OVA — see the next row. |
+| No public interface exposure on the *build/dev* host | ✅ confirmed | Forwarded ports are bound to `127.0.0.1` only (`hostfwd=tcp:127.0.0.1:2222-:22`, `...:8080-:8000`), not `0.0.0.0`. |
+| Only the intended ports are forwarded (dev host) | ✅ confirmed | Exactly two: SSH (instructor-only) and the web app. No other guest port is reachable from the host. |
+| App bound to a specific port, not wide open | ✅ confirmed | App listens on guest `0.0.0.0:8000` — guest-internal only; external reachability is controlled entirely by the hostfwd rule above on the dev host, or by the chosen VirtualBox adapter mode for a distributed OVA. |
+| Exported OVA, run by an operator on a Bridged adapter for a multi-player workshop | ⚠️ **supported, operator-accepted risk, not this project's own posture** | Per explicit operator decision (not this project's default), `SETUP.md`'s "Hosting for multiple players (Bridged adapter)" section documents this: it puts the VM on the operator's own LAN segment, reachable by anything else on that segment, not just enrolled players. This is a deliberate choice for workshop delivery, scoped to a network the operator controls — never a shared/public network, never forwarded to the internet. Guest-side services (`sshd`, the Flask app) already bind to all interfaces, and DHCP is interface-name-matched (not MAC-pinned), so no guest-side change was needed to support it; see `instructor-material/troubleshooting.md` for the DHCP fix history. |
+| Tested on a real multi-host lab network (not just this single dev host) | ⚠️ **not yet exercised with real player hardware** | The DHCP/adapter-mode fix was verified live against a real VirtualBox import by the project owner (see `troubleshooting.md`), but a full multi-client session (several separate player machines on the same bridged segment simultaneously) has not yet been run end-to-end. |
 
 ## Account / access isolation
 

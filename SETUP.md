@@ -152,20 +152,81 @@ above — just VirtualBox or VMware.
    VBoxManage import forgotten-admin-ctf.ova
    ```
    Or via the GUI: **File → Import Appliance**.
-4. **Before powering it on**, check the network adapter is set to
-   **NAT** or **Host-only**, not **Bridged**. This VM is intentionally
-   vulnerable — never put it on a shared/production network.
+4. **Pick a network adapter mode based on who needs to reach the box:**
+
+   - **Solo use, just you on this machine** → **NAT**. Add a NAT
+     port-forwarding rule (VirtualBox: Settings → Network → Advanced →
+     Port Forwarding) mapping some host port to guest `8000` (web) and
+     optionally guest `22` (SSH), then browse to
+     `http://127.0.0.1:<host-port>/`. Nothing on this VM is reachable
+     from any other machine.
+   - **Multi-player / workshop, other people's laptops need to reach
+     it over the room's LAN** → **Bridged**. See
+     [Hosting for multiple players (Bridged adapter)](#hosting-for-multiple-players-bridged-adapter)
+     below — read the risk note there before choosing this.
+
+   Either way, this VM is intentionally vulnerable. Never select
+   Bridged on a shared, corporate, hotel, or otherwise untrusted
+   network, and never forward any port on this VM through your host's
+   firewall/router to the public internet.
 5. Power on. Give it a minute or two to boot.
-6. The web app listens on guest port 8000. Add a NAT port-forwarding
-   rule (VirtualBox: Settings → Network → Advanced → Port Forwarding)
-   mapping some host port to guest `8000`, then browse to
-   `http://127.0.0.1:<host-port>/`.
+6. **NAT mode**: browse to `http://127.0.0.1:<host-port>/` as set up
+   in step 4. **Bridged mode**: see the dedicated section below for
+   how players find and reach the box.
 7. **This import does not include SSH access as `ctfbuilder`** — that
    key is kept separately from the distributed image on purpose (see
    `vm/dist/IMPORT.md`, generated alongside the export). If you need to
    inspect the box directly as its builder, you built it yourself in
    Option A and already have the matching key; a `.ova` handed to you
    by someone else won't include it, by design.
+
+### Hosting for multiple players (Bridged adapter)
+
+**Risk note, read first:** a Bridged adapter puts this intentionally
+vulnerable VM directly on the same physical/Wi-Fi network segment as
+your host, reachable by *anything* else on that segment — not just
+your enrolled players. Only do this on a network you control and that
+only your players are on: a dedicated workshop Wi-Fi/VLAN, a closed
+classroom LAN, or similar. Do not do this on a shared office, hotel,
+conference, or home network with other devices on it, and never add a
+router-level forward that would make it reachable from the public
+internet. Power the VM off (or switch it back to NAT) when the session
+ends.
+
+With that accepted, this box fully supports it — the app and sshd
+inside the guest already listen on all interfaces
+(`0.0.0.0`), and `vm/cloud-init/network-config.yaml` matches the
+network interface **by name** (`en*`), not by MAC address, so DHCP
+works correctly regardless of which hypervisor or adapter mode
+assigned the interface (see
+`instructor-material/troubleshooting.md` for the history of that fix).
+No port-forwarding is involved in this mode — players connect straight
+to the VM's own LAN IP.
+
+1. In VirtualBox, set the VM's network adapter to **Bridged Adapter**,
+   attached to the physical/Wi-Fi interface that's actually on your
+   workshop network (not a different NIC).
+2. Power on the VM and give it a minute to finish booting and get a
+   DHCP lease.
+3. **Find the VM's IP address.** The most reliable way is the local
+   VirtualBox console window itself (not SSH, not arp-scan): log in at
+   the console as `john` or `admin` with their story password (see
+   `instructor-material/credentials.md`), then run:
+   ```
+   hostname -I
+   ```
+   This avoids depending on LAN discovery tools, which can be
+   unreliable on Wi-Fi/client-isolated networks. If you'd rather not
+   log in, `arp-scan`/`netdiscover`/your router's DHCP client list from
+   another machine on the same segment will also show it, now that
+   DHCP actually works.
+4. Give that IP to your players: the web app is at
+   `http://<vm-ip>:8000/`, and the intended Stage 4 pivot is
+   `ssh admin@<vm-ip>` once they've found the password via the IDOR.
+5. Every player on the same LAN segment reaches the same box at the
+   same IP — this is a shared single instance, not one-per-player.
+   Reset between separate groups/runs with `./scripts/reset.sh vm` (or
+   re-import the OVA fresh) exactly as you would for NAT mode.
 
 ### Testing the OVA in VirtualBox
 
