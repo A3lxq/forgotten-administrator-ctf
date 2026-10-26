@@ -71,7 +71,7 @@
       "stage": "1-osint",
       "points": 0,
       "encrypted": false,
-      "value": "FFLAG:old_profile_rev1_55c2",
+      "value": "FFLAG{old_profile_rev1_55c2}",
       "password": null,
       "decryption_method": "plaintext, no decryption needed"
     },
@@ -81,7 +81,7 @@
       "stage": "2-metadata",
       "points": 0,
       "encrypted": true,
-      "value": "FFLAG:draft_scan_metadata_77b0",
+      "value": "FFLAG{draft_scan_metadata_77b0}",
       "password": "scanpass2017",
       "decryption_method": "flagcrypto.py decrypt <password> <file> - (scrypt KDF + AES-256-GCM)"
     },
@@ -91,7 +91,7 @@
       "stage": "3-git-crypto",
       "points": 0,
       "encrypted": true,
-      "value": "FFLAG:rotated_out_jan_2019_e2a4",
+      "value": "FFLAG{rotated_out_jan_2019_e2a4}",
       "password": "old-wifi-2018",
       "decryption_method": "flagcrypto.py decrypt <password> <file> - (scrypt KDF + AES-256-GCM)"
     },
@@ -101,7 +101,7 @@
       "stage": "4-web-idor-admin",
       "points": 0,
       "encrypted": false,
-      "value": "FFLAG:ticket_closed_wontfix_19d7",
+      "value": "FFLAG{ticket_closed_wontfix_19d7}",
       "password": null,
       "decryption_method": "plaintext, no decryption needed"
     },
@@ -111,7 +111,7 @@
       "stage": "5-privesc-root",
       "points": 0,
       "encrypted": true,
-      "value": "FFLAG:old_root_snapshot_f02e",
+      "value": "FFLAG{old_root_snapshot_f02e}",
       "password": "SnapshotKey-2023",
       "decryption_method": "flagcrypto.py decrypt <password> <file> - (scrypt KDF + AES-256-GCM)"
     }

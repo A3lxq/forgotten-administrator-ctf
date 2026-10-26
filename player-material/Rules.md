@@ -9,10 +9,10 @@
 3. **No attacking other teams.** If this event has multiple teams/VMs,
    stay inside your own.
 4. **Flags are evidence of understanding, not the goal by themselves.**
-   Decoy flags (`FFLAG:...`) exist on purpose — they don't cost you
+   Decoy flags (`FFLAG{...}`) exist on purpose — they don't cost you
    anything to find, they just don't score.
-5. **Ask for hints.** Your instructor has a three-level hint sheet per
-   stage. Asking is not cheating.
+5. **Ask for hints.** Your instructor can help if you're stuck. Asking
+   is not cheating.
 6. **Report, don't exploit, anything outside the intended path.** If you
    find a way to break the lab that seems unintended (not one of the
    five documented stages), stop and tell your instructor rather than

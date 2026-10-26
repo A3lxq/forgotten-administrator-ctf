@@ -13,7 +13,7 @@ Served live by the app, unauthenticated, at `/materials/osint/`
    `/materials/osint/profile.html` — username `jtyler_dev`, links
    conceptually to the `ledger-tools` project (mentioned in Activity).
 2. **Decoy, loud and first thing on the page**: a boxed-off callout —
-   `FFLAG:old_profile_rev1_55c2`, framed as a "cached status badge".
+   `FFLAG{old_profile_rev1_55c2}`, framed as a "cached status badge".
    Fast to find, zero points.
 3. `/materials/osint/project-page.html`'s changelog — the real flag is
    woven into the v0.4 line's ordinary prose, not called out
@@ -32,7 +32,7 @@ Served live at `/materials/metadata/*.png` (also
 2. **Decoy**: `scan_backup.png`'s `Comment` is a hex-encoded
    ciphertext; its `Artist` field is deliberately loud —
    `PASSWORD (use this to unlock the Comment field!): scanpass2017` —
-   decrypts to `FFLAG:draft_scan_metadata_77b0`.
+   decrypts to `FFLAG{draft_scan_metadata_77b0}`.
 
 ## Stage 3 — Git history + crypto (Original Flag 3, 150 pts)
 
@@ -47,7 +47,7 @@ extracted `stage3-git-history/` repo.
    `HEAD~1`'s commit message is loud on purpose — *"Found the old 2018
    backup again! Password is old-wifi-2018, decrypt
    old_backup_2018.enc"*. `git show HEAD~1:old_backup_2018.enc`, decrypt
-   with `old-wifi-2018` → `FFLAG:rotated_out_jan_2019_e2a4`. Fast,
+   with `old-wifi-2018` → `FFLAG{rotated_out_jan_2019_e2a4}`. Fast,
    obvious, zero points.
 3. The real flag requires going one commit further back and actually
    reading a separate file: `git show HEAD~2:notes.txt` (plain commit
@@ -95,7 +95,7 @@ favor of this simpler, equally realistic lesson.)
    ```
 3. **Decoy, loud and named for it**: `/home/admin/evidence/FOUND_A_FLAG.txt`
    — *"Found this while cleaning up old tickets, looks like a flag:"* —
-   `FFLAG:ticket_closed_wontfix_19d7`. Plaintext, no decryption needed,
+   `FFLAG{ticket_closed_wontfix_19d7}`. Plaintext, no decryption needed,
    sitting right next to the real evidence.
 
 ## Stage 5 — Linux privilege escalation
@@ -133,7 +133,7 @@ wrong password fails; `admin` cannot read `/root` at all
 *"Finally got root, huh? Before you get excited:"* then points at
 `old_evidence.enc` as if it's the prize — password `SnapshotKey-2023`
 right there in the same sentence → decrypts to
-`FFLAG:old_root_snapshot_f02e`. The genuine artifact requires the
+`FFLAG{old_root_snapshot_f02e}`. The genuine artifact requires the
 cross-stage password from Flag 3 instead, which isn't written anywhere
 on this box.
 

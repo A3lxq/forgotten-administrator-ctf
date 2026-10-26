@@ -30,7 +30,11 @@ MANIFEST_PATH = ROOT / "instructor-material" / "flag-manifest.json"
 VM_STAGING = ROOT / "vm" / "flag-staging"  # gitignored; pushed to the VM
 
 # ---------------------------------------------------------------------------
-# Single source of truth. Genuine flags use SYN{...}; decoys use FFLAG:...
+# Single source of truth. Genuine flags use SYN{...}; decoys use
+# FFLAG{...} -- same brace shape as a genuine flag on purpose, so a
+# player can't tell real from fake by punctuation alone and actually
+# has to read the surrounding context (see Section 7's "obviousness"
+# rebalance: decoys should look like a real flag, just a wrong one).
 # (format mandated by the project spec). Passwords here are the AUTHOR's
 # record — this script is what ends up NOT shipped to players (it lives
 # under scripts/, but more importantly its *output* manifest lives under
@@ -141,11 +145,11 @@ GENUINE = {
 # encrypted so the "decoys can be either" lesson still comes through,
 # just without two of everything.
 DECOYS = {
-    "d1a": dict(value="FFLAG:old_profile_rev1_55c2", stage="1-osint", encrypted=False),
-    "d2b": dict(value="FFLAG:draft_scan_metadata_77b0", stage="2-metadata", encrypted=True, password="scanpass2017"),
-    "d3b": dict(value="FFLAG:rotated_out_jan_2019_e2a4", stage="3-git-crypto", encrypted=True, password="old-wifi-2018"),
-    "d4a": dict(value="FFLAG:ticket_closed_wontfix_19d7", stage="4-web-idor-admin", encrypted=False),
-    "d5b": dict(value="FFLAG:old_root_snapshot_f02e", stage="5-privesc-root", encrypted=True, password="SnapshotKey-2023"),
+    "d1a": dict(value="FFLAG{old_profile_rev1_55c2}", stage="1-osint", encrypted=False),
+    "d2b": dict(value="FFLAG{draft_scan_metadata_77b0}", stage="2-metadata", encrypted=True, password="scanpass2017"),
+    "d3b": dict(value="FFLAG{rotated_out_jan_2019_e2a4}", stage="3-git-crypto", encrypted=True, password="old-wifi-2018"),
+    "d4a": dict(value="FFLAG{ticket_closed_wontfix_19d7}", stage="4-web-idor-admin", encrypted=False),
+    "d5b": dict(value="FFLAG{old_root_snapshot_f02e}", stage="5-privesc-root", encrypted=True, password="SnapshotKey-2023"),
 }
 
 

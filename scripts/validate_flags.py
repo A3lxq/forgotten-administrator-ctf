@@ -78,9 +78,9 @@ def main() -> int:
     else:
         fail(f"genuine flags with wrong format: {[f['id'] for f in bad_genuine]}", failures)
 
-    bad_decoy = [f for f in decoys if not f["value"].startswith("FFLAG:")]
+    bad_decoy = [f for f in decoys if not f["value"].startswith("FFLAG{")]
     if not bad_decoy:
-        ok("all decoy flags use the FFLAG:... format")
+        ok("all decoy flags use the FFLAG{...} format")
     else:
         fail(f"decoy flags with wrong format: {[f['id'] for f in bad_decoy]}", failures)
 

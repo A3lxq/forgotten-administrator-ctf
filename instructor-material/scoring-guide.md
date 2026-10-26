@@ -13,7 +13,7 @@
 | Original Flag 5 | 5 — Privesc/root | 250 | yes |
 | **Total** | | **800** | |
 
-Decoys (5, `FFLAG:...`, one per stage) always score 0, regardless of
+Decoys (5, `FFLAG{...}`, one per stage) always score 0, regardless of
 which one a team submits. They're deliberately the loud, fast find in
 each stage — a team that submits one quickly isn't being penalized for
 exploring, just reminded to keep digging.
