@@ -13,9 +13,12 @@ Run with the app's venv (needs `cryptography`):
 from __future__ import annotations
 
 import json
+import random
 import shutil
+import struct
 import subprocess
 import sys
+import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -33,6 +36,91 @@ VM_STAGING = ROOT / "vm" / "flag-staging"  # gitignored; pushed to the VM
 # under scripts/, but more importantly its *output* manifest lives under
 # instructor-material/, which is the actual player/instructor boundary).
 # ---------------------------------------------------------------------------
+
+def make_png(width: int, height: int, pixel_fn) -> bytes:
+    """A tiny, dependency-free PNG encoder (stdlib only: zlib/struct/
+    binascii via zlib.crc32). pixel_fn(x, y) -> (r, g, b) in 0-255.
+    No external imaging library needed to generate something that
+    looks like *a* photo rather than a literal blank square -- this
+    project otherwise has zero third-party build-time dependencies
+    beyond what's already in app/requirements.txt, and Pillow isn't
+    installable here without system jpeg headers, so this stays
+    consistent with the existing 1x1-PNG-via-base64 approach instead
+    of adding a new dependency just for cosmetic images."""
+    def chunk(tag: bytes, data: bytes) -> bytes:
+        return (
+            struct.pack(">I", len(data)) + tag + data
+            + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
+        )
+
+    raw = bytearray()
+    for y in range(height):
+        raw.append(0)  # filter type: none
+        for x in range(width):
+            raw.extend(pixel_fn(x, y))
+
+    sig = b"\x89PNG\r\n\x1a\n"
+    ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)  # truecolor
+    idat = zlib.compress(bytes(raw), 9)
+    return sig + chunk(b"IHDR", ihdr) + chunk(b"IDAT", idat) + chunk(b"IEND", b"")
+
+
+def render_handover_photo() -> bytes:
+    """A small, deterministic, generic desk-scene render -- no real
+    people/places, just enough visual content that opening the file
+    looks like a (low-res, noisy) photo rather than a blank square."""
+    w, h = 160, 120
+    rng = random.Random("handover_photo-v1")  # fixed seed: reproducible
+
+    def pixel(x: int, y: int) -> tuple[int, int, int]:
+        # Desk background: warm wood-brown gradient, top to bottom.
+        r, g, b = 150 - y // 4, 110 - y // 6, 70 - y // 8
+        # Laptop base: a dark trapezoid-ish block, lower-middle.
+        if 35 <= x <= 125 and 70 <= y <= 95:
+            r, g, b = 40, 40, 44
+        # Laptop screen: lighter panel above the base, with a few
+        # faint horizontal "text" lines.
+        if 45 <= x <= 115 and 35 <= y <= 70:
+            r, g, b = 60, 70, 80
+            if y % 6 in (0, 1) and 50 <= x <= 108:
+                r, g, b = 140, 150, 160
+        # A small yellow sticky note, upper-right.
+        if 128 <= x <= 150 and 20 <= y <= 40:
+            r, g, b = 225, 205, 70
+        # Grain: small per-pixel jitter so it doesn't look like flat
+        # vector art.
+        n = rng.randint(-10, 10)
+        return (max(0, min(255, r + n)), max(0, min(255, g + n)), max(0, min(255, b + n)))
+
+    return make_png(w, h, pixel)
+
+
+def render_scan_backup() -> bytes:
+    """A small, deterministic render that looks like a flatbed-scanned
+    document page (header bar + paragraph-like gray bars on an
+    off-white background), not a photo."""
+    w, h = 170, 220
+    rng = random.Random("scan_backup-v1")
+    # A handful of fixed "paragraph" line-bands so it reads as text.
+    bands = [(18, 30, 150), (36, 48, 130), (54, 66, 155),
+             (84, 96, 140), (102, 114, 120), (120, 132, 150),
+             (150, 162, 100), (168, 180, 145)]
+
+    def pixel(x: int, y: int) -> tuple[int, int, int]:
+        base = 245
+        if y <= 12:
+            base = 35  # dark header bar
+        else:
+            for top, bottom, width in bands:
+                if top <= y <= bottom and 15 <= x <= 15 + width:
+                    base = 160
+                    break
+        n = rng.randint(-4, 4)
+        v = max(0, min(255, base + n))
+        return (v, v, v)
+
+    return make_png(w, h, pixel)
+
 
 GENUINE = {
     1: dict(value="SYN{osint_fingerprint_f0c73a91}", stage="1-osint",
@@ -132,19 +220,14 @@ def build_stage2_metadata() -> dict:
     d = CHALLENGE / "stage2-metadata"
     reset_dir(d)
 
-    # Minimal valid 1x1 white PNG (no external deps needed).
-    import base64
-    png_1x1 = base64.b64decode(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AA"
-        "QUBAScY42YAAAAASUVORK5CYII="
-    )
-
     files = {
         "handover_photo.png": {
+            "render": render_handover_photo,
             "Comment": f"handover desk photo — {GENUINE[2]['value']}",
             "Artist": "jtyler_dev",
         },
         "scan_backup.png": {
+            "render": render_scan_backup,
             "Comment": flagcrypto.encrypt_bytes(
                 DECOYS["d2b"]["password"], DECOYS["d2b"]["value"].encode()
             ).hex(),
@@ -154,9 +237,11 @@ def build_stage2_metadata() -> dict:
         },
     }
 
-    for name, tags in files.items():
+    for name, file_spec in files.items():
+        render = file_spec.pop("render")
+        tags = file_spec
         path = d / name
-        path.write_bytes(png_1x1)
+        path.write_bytes(render())
         args = ["exiftool", "-overwrite_original"]
         for tag, val in tags.items():
             args.append(f"-{tag}={val}")
@@ -165,8 +250,8 @@ def build_stage2_metadata() -> dict:
 
     (d / "README.md").write_text(
         "# Stage 2 — Metadata\n\n"
-        "Two photos from the handover. Inspect their metadata (not just "
-        "the pixels — they're both 1x1 placeholder images). Try:\n"
+        "Two photos from the handover. Inspect their metadata, not just "
+        "what's visible in the image itself. Try:\n"
         "`exiftool handover_photo.png`\n"
     )
     return {"stage2_dir": str(d.relative_to(ROOT))}
