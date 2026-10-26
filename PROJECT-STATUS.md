@@ -644,6 +644,72 @@ new operator-chosen deployment option for the distributed OVA).
 succeeded this session after the owner adjusted their local
 permissions.
 
+## Addendum 7 — real CSS styling, brace-shaped decoy flags, real Stage 2 photos (all shipped as `ova-export-v6`)
+
+Three separate owner-reported issues while reviewing the live app
+ahead of a real class, fixed together and shipped as a single
+release.
+
+**The web portal was completely unstyled** — default browser HTML,
+zero CSS anywhere in `app/forgotten_admin/`. Added
+`app/forgotten_admin/static/style.css` (clean, GitHub-like: header
+bar, card/border conventions, styled forms/code blocks) and
+restructured every template to use it. No route or text content
+changes — verified with a local dev server + Playwright screenshots
+of the landing page, materials index, login form (including the
+error state), and a record page, plus all 20 app tests still passing.
+Also fixed `player-material/Getting-Started.md`, which claimed players
+"start already logged in" as `john` — false; the app has no
+auto-login, confirmed by walking the real login form in the
+screenshots above. Reworded to say players use the "sign in" link
+with the given credential.
+
+**Decoy flags were distinguishable from genuine ones by punctuation,
+not just content.** Owner reported "some flags don't look like
+original flags, some FFLAGs don't look like dummy flags." Checked
+all 10 flag values across every file, page, git commit, and the
+manifest byte-for-byte (decrypted all 6 encrypted ones) — the
+underlying data was 100% correct everywhere, no corruption, no
+mismatch. The actual issue: genuine flags are `SYN{...}` (braces) but
+decoys were `FFLAG:...` (colon, no closing brace) — different shape,
+not just different prefix, so a player could tell real from fake on
+sight without reading anything. Changed decoys to `FFLAG{...}` (same
+brace shape). Updated the single source of truth
+(`scripts/author_flags.py`), the format validator
+(`scripts/validate_flags.py`), and every doc quoting the format
+(`scoring-guide.md`, `solution-walkthrough.md`, `Flag-Submission.md`,
+`Rules.md` — which also had a stale reference to the deleted
+hint-sheet.md, fixed in passing). `validate-flags.sh` and
+`run-tests.sh` both re-verified passing after the change.
+
+**Stage 2's "handover photos" were 1x1-pixel placeholder PNGs** —
+functionally fine (the puzzle is in the EXIF metadata, not the
+pixels; the stage README said so) but looked exactly like a broken
+file if opened without that context, which is what an instructor
+spotted. Replaced with small (160x120 / 170x220), deterministic,
+dependency-free renders (generic desk/laptop scene, generic
+scanned-document look — no real people/places) via a tiny
+stdlib-only PNG writer added to `author_flags.py` (`zlib`/`struct`
+only — Pillow needs system jpeg headers not available on this build
+host, so this avoided adding a dependency rather than working around
+one). Same EXIF tags, same file roles, same puzzle mechanic.
+
+All three fixes were deployed to the dev VM, re-verified with
+`health-check.sh` (13/13) after each change, re-snapshotted, and
+re-exported. The resulting OVA was independently booted via a
+disposable `qemu-img create -b` overlay (never touching the actual
+export file) to confirm the new CSS, new flag format, and new images
+all serve correctly over HTTP on the real exported artifact, not just
+the dev VM.
+
+Published as **`ova-export-v6`** — the owner had not actually run the
+release command for an intermediate build cut earlier in this session
+(internally called "v6" with only the photo fix, then "v7" once CSS
+and flag-format were added), so nothing was lost by consolidating all
+three fixes into one properly-numbered `v6` release instead of
+shipping two separate ones. Checksum-verified the uploaded asset
+against the local build — byte-identical.
+
 ## Outstanding items requiring the project owner
 
 1. **Install VM build tooling** (needs sudo password, interactive):

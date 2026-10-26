@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+### Addendum — real CSS styling, brace-shaped decoy flags, real Stage 2 photos (shipped as ova-export-v6)
+- Added `app/forgotten_admin/static/style.css` (clean, GitHub-like
+  header/card/form/code-block styling) and restructured templates to
+  use it -- portal was previously completely unstyled. No route/text
+  changes; verified visually with Playwright screenshots; all 20 app
+  tests still pass.
+- Fixed `Getting-Started.md`'s false claim that players "start
+  already logged in" as john -- the app has no auto-login, confirmed
+  against the real login form.
+- Changed decoy flags from `FFLAG:...` to `FFLAG{...}` -- same brace
+  shape as genuine `SYN{...}` flags, so a player can't tell real from
+  fake by punctuation alone anymore, only by reading content. All 10
+  flag values independently verified byte-for-byte correct (6
+  decrypted) both before and after -- the underlying data was never
+  wrong, only the decoy format gave itself away. Updated
+  `author_flags.py`, `validate_flags.py`, and every doc quoting the
+  format; also fixed a stale hint-sheet.md reference found in passing.
+- Replaced Stage 2's 1x1-pixel placeholder "handover photos" with
+  small, deterministic, dependency-free renders (generic desk/laptop
+  scene, generic scanned-document look) via a stdlib-only PNG writer
+  -- same EXIF tags, same puzzle mechanic, just not blank-looking.
+- All three fixes deployed + re-verified on the dev VM, then
+  re-exported and independently re-verified against the actual OVA
+  file via a disposable overlay boot before publishing.
+- Published as `ova-export-v6` (the owner hadn't actually run the
+  release command for an earlier, narrower "v6" cut, so this
+  consolidates what would have been v6+v7 into one properly-numbered
+  release). Checksum-verified the uploaded asset byte-identical to
+  the local build.
+
 ### Addendum — timed solve, LLM skill files + blind-test, leaked-history bug found and fixed, Bridged multi-player hosting added
 - Solved the box myself end-to-end (all 5 genuine + 5 decoy flags),
   timed, with full tool list.
