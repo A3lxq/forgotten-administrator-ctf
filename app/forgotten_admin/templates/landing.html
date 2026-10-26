@@ -2,10 +2,11 @@
 {% block title %}ledger-tools — internal tools portal{% endblock %}
 {% block content %}
   <h1>ledger-tools</h1>
-  <p>Internal handover portal. If you're here to investigate the
-  handover, start with the developer's own materials before touching
-  anything else:</p>
-  <p><a href="{{ url_for('materials.index') }}">Handover materials &rarr;</a></p>
-  <hr>
+  <p class="meta">Internal handover portal.</p>
+  <div class="card">
+    <p>If you're here to investigate the handover, start with the
+    developer's own materials before touching anything else:</p>
+    <p><a href="{{ url_for('materials.index') }}">Handover materials &rarr;</a></p>
+  </div>
   <p>Already have a login? <a href="{{ url_for('auth.login') }}">Sign in</a>.</p>
 {% endblock %}

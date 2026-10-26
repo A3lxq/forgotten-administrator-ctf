@@ -2,6 +2,8 @@
 {% block title %}Record #{{ record["id"] }}{% endblock %}
 {% block content %}
   <h1>{{ record["title"] }}</h1>
-  <p><em>Owner: {{ record["owner"] }} (record id {{ record["id"] }})</em></p>
-  <pre>{{ record["body"] }}</pre>
+  <p class="meta">Owner: {{ record["owner"] }} &middot; record id {{ record["id"] }}</p>
+  <div class="card">
+    <pre>{{ record["body"] }}</pre>
+  </div>
 {% endblock %}

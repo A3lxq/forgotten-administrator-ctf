@@ -18,8 +18,10 @@ emailed, or handed to you on a drive.
    ```
    python3 flagcrypto.py decrypt "<password>" <file> -
    ```
-3. **A web login**: you start already logged in as John's web account
-   (`john` / `Summer2019!` — found among his things).
+3. **A web login**: John's own web account credentials
+   (`john` / `Summer2019!` — found among his things). Use the
+   "sign in" link on the landing page to log in with these before
+   looking for anything that needs an account.
 
 (If your instructor handed you a separate folder instead — some events
 run that way — the same material is in there; start with that instead

@@ -2,17 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>{% block title %}Internal Tools{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Internal Tools{% endblock %} · ledger-tools</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <header>
-    <strong>Internal Tools</strong>
-    {% if g.user %}
-      — logged in as {{ g.user["username"] }}
-      (<a href="{{ url_for('auth.logout') }}">logout</a>)
-    {% endif %}
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="{{ url_for('index') }}">ledger-tools</a>
+      <span class="session">
+        {% if g.user %}
+          signed in as <strong>{{ g.user["username"] }}</strong>
+          · <a href="{{ url_for('auth.logout') }}">sign out</a>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}">sign in</a>
+        {% endif %}
+      </span>
+    </div>
   </header>
-  <hr>
-  {% block content %}{% endblock %}
+  <main>
+    {% block content %}{% endblock %}
+  </main>
 </body>
 </html>
