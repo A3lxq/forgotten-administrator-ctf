@@ -17,4 +17,11 @@ app = create_app()
 
 if __name__ == "__main__":
     port = int(os.environ.get("DASHBOARD_PORT", "7000"))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    # threaded=True: without it, Flask's dev server handles one request
+    # at a time -- fine for light, spread-out polling, but a real event
+    # has exactly the kind of correlated burst (everyone's leaderboard
+    # fires confetti at once and they all refresh) that would queue up
+    # behind each other otherwise. Verified this was a real, measurable
+    # bottleneck (latency scaling with concurrent load) before adding
+    # this, and that it's gone afterward -- see dashboard-guide.md.
+    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)

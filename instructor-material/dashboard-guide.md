@@ -117,3 +117,23 @@ Run this between separate groups/classes, the same way you'd run
 Covers flag classification, team claim/resume + PIN enforcement,
 submission idempotency (resubmitting a flag doesn't double-score), and
 both winner rules including the tie-break case.
+
+## Tested before a real event, not just assumed
+
+- **A 5-team dry run** through the real UI (Playwright): fast/slow
+  teams, decoys, garbage input, a duplicate submission, and a team
+  resuming from a second device mid-event (two members, same name+PIN,
+  scores correctly combined). Every score, rank, submission count, the
+  live-winner banner, and the final-winner banner after End Event all
+  came out exactly right.
+- **Concurrency**: found and fixed a real issue here — Flask's dev
+  server handles one request at a time unless told otherwise, and
+  latency measurably scaled with concurrent load before the fix
+  (`wsgi.py` now passes `threaded=True`). Re-verified afterward with
+  15 teams registering and submitting the same flag at the exact same
+  instant: zero failed requests, zero lock errors, every team scored
+  correctly. At the scale of one actual event (~20-30 students, maybe
+  8-12 teams, polling every 4s) this was never close to a real
+  bottleneck even before the fix, but the fix costs nothing and removes
+  the concern entirely — including the worst-case moment of everyone's
+  screen firing confetti at once and refreshing together.
