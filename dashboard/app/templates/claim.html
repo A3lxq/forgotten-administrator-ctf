@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Join or resume your team{% endblock %}
+{% block content %}
+  <h1>Join or resume your team</h1>
+  <p class="meta">Pick a team name and a PIN the first time -- use the
+  same two to come back later. No PIN, no entry under that name.</p>
+  <div class="card">
+    {% if error %}<p class="flash-error">{{ error }}</p>{% endif %}
+    <form method="post" class="auth-form">
+      <div class="field">
+        <label for="team_name">Team name</label>
+        <input id="team_name" name="team_name" autocomplete="off" required>
+      </div>
+      <div class="field">
+        <label for="pin">PIN (4+ characters, remember it)</label>
+        <input id="pin" name="pin" type="password" autocomplete="off" required>
+      </div>
+      <button type="submit" class="btn-primary">Continue</button>
+    </form>
+  </div>
+{% endblock %}

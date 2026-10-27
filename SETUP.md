@@ -255,6 +255,13 @@ Full explanation of each: `instructor-material/reset-guide.md`.
 — it covers the intended player path, hints, scoring, and what to hand
 out vs. keep private.
 
+**Running a multi-team event?** There's a self-service scoring
+dashboard — teams register, submit flags, and watch a live leaderboard
+themselves instead of you checking submissions by hand. It's a
+completely separate app from the CTF VM (runs on your own machine, not
+the box players are attacking) — see
+`instructor-material/dashboard-guide.md`.
+
 ## Something went wrong
 
 `instructor-material/troubleshooting.md` documents every real issue

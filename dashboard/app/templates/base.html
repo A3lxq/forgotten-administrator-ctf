@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Scoreboard{% endblock %} · Forgotten Administrator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="{{ url_for('leaderboard.page') }}">Forgotten Administrator — Scoreboard</a>
+      <span class="session">
+        {% if g.get('team') %}
+          team <strong>{{ g.team["name"] }}</strong>
+          · <a href="{{ url_for('teams.logout') }}">switch team</a>
+        {% else %}
+          <a href="{{ url_for('teams.claim') }}">join / resume a team</a>
+        {% endif %}
+        · <a href="{{ url_for('leaderboard.page') }}">leaderboard</a>
+      </span>
+    </div>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

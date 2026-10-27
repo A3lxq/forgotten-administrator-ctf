@@ -29,6 +29,7 @@ investigated."
 | `build-guide.md` | Building/deploying the VM and app from scratch |
 | `solution-walkthrough.md` | The exact, verified path through every stage |
 | `scoring-guide.md` | Point values, flag validation, scoring a submission |
+| `dashboard-guide.md` | Self-service multi-team scoring dashboard: setup, event-day flow, resetting |
 | `privesc-design.md` | The Stage 5 weakness: what, why, how to test/reset |
 | `reset-guide.md` | Resetting app state / the privesc mechanism / the VM |
 | `security-review.md` | Isolation and safety checks for this lab |
@@ -75,7 +76,9 @@ stage; genuine flags require actually reading.
    handed to them directly — the intended path is to find the admin
    password through the IDOR and SSH in with it themselves.
 3. Watch for out-of-scope activity per `player-material/Rules.md`.
-4. Score submissions per `scoring-guide.md`.
+4. Score submissions self-service via the scoring dashboard
+   (`dashboard-guide.md`) for a multi-team event, or manually per
+   `scoring-guide.md` for a single team/solo run.
 5. Reset per `reset-guide.md` before the next team.
 
 ## Known limitation

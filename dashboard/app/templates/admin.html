@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Instructor controls{% endblock %}
+{% block content %}
+  <h1>Instructor controls</h1>
+
+  {% if event["ended_at"] %}
+    <p class="flash-neutral">Event ended at {{ event["ended_at"] }}.
+      Final winner: <strong>
+      {% for t in teams %}{% if t["id"] == event["final_winner_team_id"] %}{{ t["name"] }}{% endif %}{% endfor %}
+      </strong></p>
+  {% else %}
+    <div class="card">
+      <form method="post" action="{{ url_for('admin.end_event') }}"
+            onsubmit="return confirm('End the event now? This locks all further submissions and picks the final winner by current score.');">
+        <button type="submit" class="btn-primary">End Event</button>
+      </form>
+    </div>
+  {% endif %}
+
+  <h2>Teams ({{ teams|length }})</h2>
+  <table class="leaderboard">
+    <thead>
+      <tr><th>Team</th><th>Score</th><th>Submissions</th><th>Joined</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for t in teams %}
+        <tr>
+          <td>{{ t["name"] }}</td>
+          <td class="score">{{ t["score"] }}</td>
+          <td>{{ t["submission_count"] }}</td>
+          <td class="meta">{{ t["created_at"] }}</td>
+          <td>
+            <form method="post" action="{{ url_for('admin.remove_team', team_id=t['id']) }}"
+                  onsubmit="return confirm('Remove team {{ t['name'] }} and all its submissions?');">
+              <button type="submit">Remove</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td class="meta" colspan="5">No teams yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Maintenance</h2>
+  <div class="card">
+    <p class="meta">Reload the flag manifest if you changed
+      <code>flag-manifest.json</code> while this is running.</p>
+    <form method="post" action="{{ url_for('admin.reload_manifest') }}">
+      <button type="submit">Reload flag manifest</button>
+    </form>
+  </div>
+  <div class="card">
+    <p class="meta">Wipe all teams, submissions, and event state for a
+      fresh run. Cannot be undone.</p>
+    <form method="post" action="{{ url_for('admin.reset') }}"
+          onsubmit="return confirm('Wipe ALL teams and submissions? This cannot be undone.');">
+      <button type="submit">Reset for a new event</button>
+    </form>
+  </div>
+{% endblock %}

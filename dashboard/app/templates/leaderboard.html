@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard{% endblock %}
+{% block content %}
+  <h1>Leaderboard</h1>
+  <p class="meta">Updates automatically -- no need to refresh.</p>
+
+  <div id="live-winner-banner" class="winner-banner">
+    <div class="title"></div>
+    <p class="team-name"></p>
+  </div>
+  <div id="final-winner-banner" class="winner-banner">
+    <div class="title"></div>
+    <p class="team-name"></p>
+  </div>
+  <p id="event-ended-note" class="flash-neutral" hidden>
+    The event has ended -- no further submissions are being scored.
+  </p>
+
+  <table class="leaderboard">
+    <thead>
+      <tr><th>Rank</th><th>Team</th><th>Score</th><th>Genuine flags</th></tr>
+    </thead>
+    <tbody id="leaderboard-body">
+      <tr><td class="meta" colspan="4">Loading…</td></tr>
+    </tbody>
+  </table>
+
+  <script src="{{ url_for('static', filename='confetti.js') }}"></script>
+  <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+{% endblock %}

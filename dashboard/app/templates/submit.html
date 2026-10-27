@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Submit a flag{% endblock %}
+{% block content %}
+  <h1>Submit a flag</h1>
+  <p class="meta">Team <strong>{{ g.team["name"] }}</strong> &middot;
+    {{ score }} points &middot; {{ genuine_found }}/{{ genuine_total }} genuine flags</p>
+
+  {% if result %}
+    {% if result.status == "genuine" %}
+      <p class="flash-success">{{ result.message }}</p>
+    {% elif result.status == "decoy" or result.status == "duplicate" or result.status == "event_ended" %}
+      <p class="flash-neutral">{{ result.message }}</p>
+    {% else %}
+      <p class="flash-error">{{ result.message }}</p>
+    {% endif %}
+  {% endif %}
+
+  <div class="card">
+    <form method="post" class="auth-form">
+      <div class="field">
+        <label for="flag_value">Flag value</label>
+        <input id="flag_value" name="flag_value" autocomplete="off" autofocus>
+      </div>
+      <button type="submit" class="btn-primary">Submit</button>
+    </form>
+  </div>
+
+  <h2>Your team's submissions</h2>
+  {% if history %}
+    <table class="leaderboard">
+      <thead>
+        <tr><th>Flag</th><th>Result</th><th>Points</th><th>When</th></tr>
+      </thead>
+      <tbody>
+        {% for row in history %}
+          <tr>
+            <td><code>{{ row["flag_value"] }}</code></td>
+            <td>{{ row["classification"] }}</td>
+            <td class="score">{{ row["points_awarded"] }}</td>
+            <td class="meta">{{ row["submitted_at"] }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="meta">Nothing submitted yet.</p>
+  {% endif %}
+
+  <p><a href="{{ url_for('leaderboard.page') }}">View the full leaderboard &rarr;</a></p>
+{% endblock %}
