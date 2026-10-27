@@ -64,9 +64,12 @@ def init_db(conn: sqlite3.Connection) -> None:
 
 def reset_db(conn: sqlite3.Connection) -> None:
     """Wipe all teams/submissions/event state for a fresh event run.
-    Does not touch flag-manifest.json or anything outside this DB."""
+    Does not touch flag-manifest.json or anything outside this DB.
+    event_state must be cleared before teams -- its live/final winner
+    columns are foreign keys into teams, so deleting teams first trips
+    the FK constraint (PRAGMA foreign_keys = ON in get_db())."""
     conn.executescript(
-        "DELETE FROM submissions; DELETE FROM teams; DELETE FROM event_state;"
+        "DELETE FROM event_state; DELETE FROM submissions; DELETE FROM teams;"
     )
     conn.execute("INSERT INTO event_state (id) VALUES (1)")
     conn.commit()
