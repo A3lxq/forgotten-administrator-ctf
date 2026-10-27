@@ -29,10 +29,23 @@ manifest from `/admin` (see below) rather than restarting the dashboard.
 
 ## One-time setup
 
+**Already have this repo cloned?**
 ```
 python3 -m venv dashboard/.venv
 dashboard/.venv/bin/pip install -r dashboard/requirements.txt
 ```
+
+**Just want the dashboard, not the whole repo (VM images, build
+tooling, etc.)?** Grab the standalone package from
+[Releases](https://github.com/A3lxq/forgotten-administrator-ctf/releases)
+— tag `dashboard-vN` (separate from the `ova-export-vN` CTF VM
+releases). It's self-contained: `dashboard/`, this guide, the flag
+manifest, and the three `scripts/run-dashboard*.sh` wrappers, in the
+same relative layout as the full repo. Extract it, then run the setup
+command above from inside the extracted directory. **It includes
+`instructor-material/flag-manifest.json`** (the dashboard needs it to
+score flags) — that's the full answer key, so don't hand this specific
+archive to players even though the repo itself is public.
 
 ## Starting it for an event
 

@@ -17,6 +17,7 @@ vm/keys/
 vm/flag-staging/
 vm/dist/
 dist/
+dashboard-dist/
 # Generated, standalone nested git repo (players investigate ITS history
 # directly) -- reproducible via scripts/author_flags.py, not tracked here.
 challenge-data/stage3-git-history/
