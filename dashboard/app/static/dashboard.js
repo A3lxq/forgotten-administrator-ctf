@@ -66,6 +66,12 @@
       .then((data) => {
         renderStandings(data.standings);
 
+        document.getElementById("stat-teams").textContent = String(data.standings.length);
+        document.getElementById("stat-flags").textContent = String(data.genuine_total);
+        document.getElementById("stat-status").textContent = data.event_ended
+          ? "Ended"
+          : "In progress";
+
         if (data.live_winner) {
           const isNewTransition = !seenLiveWinner;
           seenLiveWinner = true;

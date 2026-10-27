@@ -77,6 +77,7 @@ def state():
 
     return jsonify(
         {
+            "genuine_total": current_app.flag_book.genuine_count,
             "standings": [
                 {
                     "name": t["name"],

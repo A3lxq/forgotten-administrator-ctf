@@ -6,7 +6,7 @@
 (function (global) {
   "use strict";
 
-  const COLORS = ["#d4a72c", "#1a7f37", "#0969da", "#d1242f", "#8250df", "#bf3989"];
+  const COLORS = ["#39ff14", "#22d3ee", "#e879f9", "#facc15", "#ff4d6d"];
 
   function ensureCanvas() {
     let canvas = document.getElementById("confetti-canvas");
