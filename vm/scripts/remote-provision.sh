@@ -24,6 +24,9 @@
 #      owned by admin, not world-readable.
 #   4. Seeds the app's database (idempotent; db.py's seed_db() already
 #      de-dupes).
+#   5. Creates the password-trap.txt honeypot accounts, each locked to
+#      cmatrix as its login shell -- the credentials genuinely work,
+#      there's just never a real shell on the other end.
 set -euo pipefail
 
 APP_DIR=/opt/forgotten-admin
@@ -31,7 +34,7 @@ VENV="$APP_DIR/app/.venv"
 
 echo "== Installing OS packages =="
 sudo apt-get update -qq
-sudo apt-get install -y -qq python3-venv python3-pip python3-cryptography >/dev/null
+sudo apt-get install -y -qq python3-venv python3-pip python3-cryptography cmatrix >/dev/null
 
 echo "== Laying out $APP_DIR =="
 sudo mkdir -p "$APP_DIR"
@@ -53,14 +56,66 @@ echo "== Syncing the Linux admin password to match the web app's (Stage 4) =="
 # Same credential disclosed via the IDOR -- this reuse IS the exploit.
 echo 'admin:N3tOps-Diag#7' | sudo chpasswd
 
-echo "== Enabling SSH password auth for 'admin' only (everyone else stays key-only/disabled) =="
-sudo tee /etc/ssh/sshd_config.d/90-admin-password-auth.conf >/dev/null <<'EOF'
+echo "== Provisioning the credential-trap honeypot accounts (password-trap.txt) =="
+# These usernames/passwords are EXACTLY what challenge-data/stage1-osint/
+# password-trap.txt hands to players -- the trap is that the credentials
+# genuinely work for SSH password auth, but the only thing waiting on
+# the other end is cmatrix. The login shell below never reads its own
+# argv ($0/$@/"$*" appear nowhere in it), so this can't become a real
+# command-execution path even via `ssh user@host 'some command'` (sshd
+# runs the configured shell with `-c '<command>'` for a non-interactive
+# session -- ignoring argv entirely closes that off completely, not
+# just for an interactive login).
+sudo tee /usr/local/sbin/cmatrix-trap.sh >/dev/null <<'EOF'
+#!/bin/bash
+# Ignore SIGINT at this (the login shell's own) level -- without this,
+# a player hitting Ctrl-C kills this script outright and the punchline
+# below never prints. The documented, intended way to dismiss cmatrix
+# is any regular keystroke (-s, "screensaver mode"), which this
+# doesn't interfere with; Ctrl-C specifically still ends the whole SSH
+# session abruptly instead of printing the punchline first -- an
+# acceptable, still-plausible outcome for a player who interrupts
+# rather than types a key, not worth more complexity to chase further.
+trap '' INT
+cmatrix -abs || true
+echo
+echo "Access revoked. This account's credentials were deactivated"
+echo "when its owner left SynHub. Nice try though."
+exit 0
+EOF
+sudo chmod 755 /usr/local/sbin/cmatrix-trap.sh
+grep -qxF /usr/local/sbin/cmatrix-trap.sh /etc/shells || echo /usr/local/sbin/cmatrix-trap.sh | sudo tee -a /etc/shells >/dev/null
+
+HONEYPOT_USERS=()
+for pair in \
+  "msharma_ops:0psRunb00k\$22" \
+  "k.delgado_qa:Qu4lity_First!" \
+  "r.obrien_dev:DevOps2016#" \
+  "t.nakamura_support:Supp0rtTix#99" \
+  "a.ferreira_design:Pix3lPerfect!" \
+  "p.wu_infra:Infr4Stack_7" \
+  "legacy-ftp:ftpUser_2014" \
+  "backup-svc:B4ckupN0w!"
+do
+  user="${pair%%:*}"
+  pass="${pair#*:}"
+  HONEYPOT_USERS+=("$user")
+  sudo id -u "$user" >/dev/null 2>&1 || sudo useradd --badname -m -s /usr/local/sbin/cmatrix-trap.sh "$user"
+  echo "$user:$pass" | sudo chpasswd
+done
+HONEYPOT_LIST=$(IFS=,; echo "${HONEYPOT_USERS[*]}")
+
+echo "== Enabling SSH password auth for 'admin' + the honeypot accounts only (everyone else stays key-only/disabled) =="
+sudo tee /etc/ssh/sshd_config.d/90-admin-password-auth.conf >/dev/null <<EOF
 # Loads after cloud-init's global "PasswordAuthentication no" (sorted
-# after 50-/60-* by filename) and overrides it for this one account
-# only -- intentional, Stage 4's credential-reuse lesson. john, root,
-# and ctfbuilder are unaffected (root login is separately disabled;
+# after 50-/60-* by filename) and overrides it for these accounts only
+# -- intentional. admin's own password auth is Stage 4's credential-
+# reuse lesson; the honeypot accounts are the password-trap.txt gag,
+# each one locked to cmatrix-trap.sh as its login shell (see above), so
+# none of them can ever reach a real command prompt. john, root, and
+# ctfbuilder are unaffected (root login is separately disabled;
 # ctfbuilder/john have no business reason to use a password here).
-Match User admin
+Match User admin,$HONEYPOT_LIST
     PasswordAuthentication yes
 EOF
 sudo chmod 644 /etc/ssh/sshd_config.d/90-admin-password-auth.conf

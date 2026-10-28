@@ -54,6 +54,15 @@ check "only expected ports are listening" bash -c "
   unexpected=\$(echo \"\$out\" | grep -vE ':22 |:8000 |:53 |State' || true)
   [ -z \"\$unexpected\" ]
 "
+check "credential-trap honeypot account logs in but never grants a real shell" python3 -c "
+import pexpect, sys
+c = pexpect.spawn(\"ssh -p 2222 -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null msharma_ops@127.0.0.1 'id'\", timeout=15)
+c.expect('password:')
+c.sendline('0psRunb00k\$22')
+c.expect(pexpect.EOF, timeout=20)
+out = c.before.decode(errors='replace')
+sys.exit(1 if 'uid=' in out else 0)
+"
 check "privesc weakness is in its expected state (writable by admin group)" bash -c "$SSH 'sudo -u admin test -w /opt/admin-tools/cleanup.sh'"
 check "/root is not readable by admin" bash -c "! $SSH 'sudo -u admin test -r /root/final_evidence.enc'"
 
