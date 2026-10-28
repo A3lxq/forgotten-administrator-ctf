@@ -273,4 +273,22 @@ echo "cleanup.sh: $PERM (expected: 664 root:admin)"
 sudo -u admin test -w /opt/admin-tools/cleanup.sh && echo "confirmed: admin CAN write cleanup.sh"
 sudo -u admin test -w /etc/cron.d/admin-tools-cleanup && echo "WARNING: admin can also write the cron file itself (unintended)" || echo "confirmed: admin cannot write the cron definition (only the script it runs)"
 
+echo "== Trimming image bloat before any export (apt cache/lists, journal logs) =="
+# Harmless to redo every run -- apt-get update (above) always refetches
+# the lists it needs, and journald just starts a fresh log. Matters
+# because this is what export-vm.sh/export-ova.sh package up: left
+# alone, apt cache/lists and journal logs just grow across every
+# re-provision and silently bloat every future export.
+sudo apt-get clean -qq
+sudo rm -rf /var/lib/apt/lists/*
+sudo journalctl --vacuum-size=5M >/dev/null 2>&1 || true
+# Deleting files inside the guest only frees space at the ext4 level --
+# qemu's qcow2 backing file keeps those blocks allocated until the
+# guest actually issues a discard/TRIM for them and QEMU honors it.
+# Without this, the steps above reduce disk usage inside the VM but do
+# nothing for the exported image's actual file size (confirmed: this
+# was the real cause of ova-export-v7 initially exceeding GitHub's
+# 2GiB-per-asset limit, even after the apt/journal cleanup above).
+sudo fstrim -av || true
+
 echo "Done."
