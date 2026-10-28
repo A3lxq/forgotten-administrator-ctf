@@ -149,6 +149,27 @@ def end_event():
     return redirect(url_for("admin.dashboard"))
 
 
+@bp.route("/vm-ip", methods=("POST",))
+@admin_required
+def set_vm_ip():
+    """Sets (or updates) the address teams should use for the CTF VM
+    itself -- shown on their own submit page behind a short per-team
+    countdown (teams.py / hints.py-style: each team sees its own
+    reveal, not a synchronized broadcast). Updating this bumps
+    vm_ip_set_at, which is what makes a team that already saw an
+    earlier value see the reveal again for the new one."""
+    value = request.form.get("vm_ip", "").strip()
+    db = get_db()
+    db.execute(
+        "UPDATE event_state SET vm_ip = ?, "
+        "vm_ip_set_at = strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime') "
+        "WHERE id = 1",
+        (value or None,),
+    )
+    db.commit()
+    return redirect(url_for("admin.dashboard"))
+
+
 @bp.route("/reload-manifest", methods=("POST",))
 @admin_required
 def reload_manifest():

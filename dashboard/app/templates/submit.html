@@ -15,6 +15,20 @@
     {% endif %}
   {% endif %}
 
+  <div class="card vm-ip-card">
+    <h2 class="chart-heading">Lab VM address</h2>
+    {% if vm_ip %}
+      {% if vm_ip_show_countdown %}
+        <p class="vm-ip-countdown" id="vm-ip-countdown" data-vm-ip="{{ vm_ip }}">5</p>
+        <p class="vm-ip-reveal" id="vm-ip-reveal"></p>
+      {% else %}
+        <p class="vm-ip-value">{{ vm_ip }}</p>
+      {% endif %}
+    {% else %}
+      <p class="meta">Your instructor hasn't shared the lab address yet — check back here.</p>
+    {% endif %}
+  </div>
+
   <div class="card">
     <form method="post" class="auth-form">
       <div class="field">
@@ -47,4 +61,5 @@
   {% endif %}
 
   <p><a href="{{ url_for('leaderboard.page') }}">View the full leaderboard &rarr;</a></p>
+  <script src="{{ url_for('static', filename='vm-ip.js') }}"></script>
 {% endblock %}

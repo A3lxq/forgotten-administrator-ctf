@@ -27,7 +27,7 @@ def load_current_team():
         g.team = None
     else:
         g.team = get_db().execute(
-            "SELECT id, name FROM teams WHERE id = ?", (team_id,)
+            "SELECT id, name, vm_ip_seen_at FROM teams WHERE id = ?", (team_id,)
         ).fetchone()
 
 
@@ -104,6 +104,22 @@ def submit():
     score = sum(row["points_awarded"] for row in history)
     genuine_found = sum(1 for row in history if row["classification"] == "genuine")
 
+    # The lab VM address, revealed behind a short per-team countdown --
+    # each team gets its own reveal the first time it sees a given
+    # value, not a reveal broadcast live to everyone at once. Visiting
+    # this page is what marks a value "seen" (same pattern as
+    # hints.py's hints_last_read_at), so saving a *new* address in
+    # /admin naturally makes every team see the countdown again next
+    # time they're here, without any extra bookkeeping.
+    event = db.execute("SELECT vm_ip, vm_ip_set_at FROM event_state WHERE id = 1").fetchone()
+    vm_ip = event["vm_ip"] if event else None
+    vm_ip_set_at = event["vm_ip_set_at"] if event else None
+    vm_ip_show_countdown = False
+    if vm_ip:
+        vm_ip_show_countdown = g.team["vm_ip_seen_at"] != vm_ip_set_at
+        db.execute("UPDATE teams SET vm_ip_seen_at = ? WHERE id = ?", (vm_ip_set_at, g.team["id"]))
+        db.commit()
+
     return render_template(
         "submit.html",
         result=result,
@@ -111,6 +127,8 @@ def submit():
         score=score,
         genuine_found=genuine_found,
         genuine_total=current_app.flag_book.genuine_count,
+        vm_ip=vm_ip,
+        vm_ip_show_countdown=vm_ip_show_countdown,
     )
 
 

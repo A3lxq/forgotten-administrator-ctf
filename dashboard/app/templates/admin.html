@@ -29,6 +29,28 @@
   </div>
 
   <div class="card">
+    <form method="post" action="{{ url_for('admin.set_vm_ip') }}" class="auth-form">
+      <div class="field">
+        <label for="vm_ip">Lab VM address</label>
+        <input id="vm_ip" name="vm_ip" autocomplete="off" maxlength="200"
+               placeholder="e.g. 192.168.1.50 or 192.168.1.50:8080"
+               value="{{ event['vm_ip'] or '' }}">
+      </div>
+      <button type="submit" class="btn-primary">Save address</button>
+    </form>
+    <p class="meta">
+      {% if event['vm_ip'] %}
+        Shown to each team on their own submit page the first time they
+        see it, behind a short countdown. Saving a new value here shows
+        that countdown again, for the new address.
+      {% else %}
+        Not set yet -- teams won't see an address on their submit page
+        until you save one here.
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="card">
     <form method="post" action="{{ url_for('admin.give_hint') }}"
           onsubmit="return confirm('Send every team a message now? If half or more of all teams are currently waiting on a reply, everyone gets a genuine hint tailored to their own progress -- otherwise everyone gets a taunt instead.');">
       <button type="submit" class="btn-primary">Give Hint</button>

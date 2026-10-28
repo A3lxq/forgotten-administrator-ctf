@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS teams (
     name TEXT UNIQUE NOT NULL,
     pin_hash TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime')),
-    hints_last_read_at TEXT
+    hints_last_read_at TEXT,
+    vm_ip_seen_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS submissions (
@@ -37,7 +38,9 @@ CREATE TABLE IF NOT EXISTS event_state (
     started_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime')),
     ended_at TEXT,
     live_winner_team_id INTEGER REFERENCES teams(id),
-    final_winner_team_id INTEGER REFERENCES teams(id)
+    final_winner_team_id INTEGER REFERENCES teams(id),
+    vm_ip TEXT,
+    vm_ip_set_at TEXT
 );
 
 -- Hint requests: team <-> admin only. There is deliberately no concept
@@ -68,8 +71,23 @@ def close_db(_exc=None) -> None:
         db.close()
 
 
+def _add_column_if_missing(conn: sqlite3.Connection, table: str, column: str, coltype: str) -> None:
+    """CREATE TABLE IF NOT EXISTS only applies to a brand-new database
+    file -- it has no effect on a table that already exists from an
+    earlier version, so a plain schema edit silently does nothing for
+    anyone upgrading in place. Unlike this project's past schema
+    changes (which required deleting dashboard.sqlite3, losing all
+    team data), this migrates an existing database without wiping it."""
+    existing = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
+    if column not in existing:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {coltype}")
+
+
 def init_db(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA)
+    _add_column_if_missing(conn, "teams", "vm_ip_seen_at", "TEXT")
+    _add_column_if_missing(conn, "event_state", "vm_ip", "TEXT")
+    _add_column_if_missing(conn, "event_state", "vm_ip_set_at", "TEXT")
     # Single event_state row, created once.
     conn.execute("INSERT OR IGNORE INTO event_state (id) VALUES (1)")
     conn.commit()

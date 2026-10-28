@@ -143,6 +143,28 @@ here), you have to `source` it yourself each session.
    or griefing team, and reload the flag manifest if you regenerated
    flags mid-setup.
 
+## Sharing the lab VM address
+
+`/admin` has a **Lab VM address** field — save the CTF VM's own
+address there (e.g. `192.168.1.50` or `192.168.1.50:8080`, whatever
+you'd otherwise read off and announce yourself) and it shows up on
+each team's own submit page instead of you announcing it out loud or
+writing it on a board.
+
+- The first time a team's submit page would show a given address, it
+  plays a 5-second countdown before revealing it — this is per team,
+  not a synchronized broadcast, so a team that joins later still gets
+  its own countdown on its own first visit, not an instant value.
+- Once a team has seen a given address, later visits show it directly,
+  no countdown.
+- If you save a **new** value here (the VM got re-IP'd, you're running
+  a second group with a different box), every team sees the countdown
+  again the next time they load their submit page, for the new
+  address.
+- If you never set this, teams just don't see this section filled in —
+  nothing breaks; it's purely an optional convenience on top of
+  however else you'd hand out the address.
+
 ## Hint requests (teams -> you, never team -> team)
 
 Teams can ask you for a hint from their own dashboard ("ask for a
