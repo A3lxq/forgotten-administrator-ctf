@@ -90,7 +90,10 @@ here), you have to `source` it yourself each session.
    the team; same two gets them back in later), and submit flags as
    they find them.
 3. Point a projector/shared screen at `/leaderboard` — it updates on its
-   own every few seconds, no refresh needed.
+   own every few seconds, no refresh needed. Below the standings table
+   is a score-over-time chart, one line per team, so you can see at a
+   glance who's pulling ahead and when teams are actually active (it
+   also steps on decoy submissions, at +0, not just genuine scores).
 4. If any team collects all 5 genuine flags before time's up, the
    leaderboard fires confetti and announces them live, automatically —
    nothing for you to do.
@@ -111,6 +114,11 @@ that team and you — **teams can never see or contact each other**
 through this, enforced structurally (every team-facing route is
 scoped to that team's own login session, not a value anyone can pass
 in), not just hidden by the UI.
+
+When you reply, the team sees a small notification dot next to "ask
+for a hint" in their own nav — visible from any page (leaderboard,
+rules, submit), not just `/hints` itself — so they notice even if
+they weren't staring at the hints page when you answered.
 
 - The main `/admin` page shows a live "N teams waiting for a reply"
   badge the moment any team asks something.
