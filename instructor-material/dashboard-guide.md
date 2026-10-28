@@ -70,14 +70,21 @@ still sitting there.
 
 ```
 export DASHBOARD_ADMIN_PASSCODE='pick-something-only-you-know'
+export DASHBOARD_SECRET_KEY='a-long-random-string-you-generate-once'
 ./scripts/run-dashboard.sh
 ```
+Generate that second value once with
+`python3 -c "import secrets; print(secrets.token_hex(32))"` — it's not
+something you pick yourself, just a random key.
 
-**Don't want to retype the passcode every time you open a new
-terminal?** Put the `export` line in a `.env` file at the repo root and
-`source .env` instead of typing it inline:
+**Don't want to retype these every time you open a new terminal?** Put
+both `export` lines in a `.env` file at the repo root and `source .env`
+instead of typing them inline:
 ```
-echo "export DASHBOARD_ADMIN_PASSCODE='pick-something-only-you-know'" > .env
+{
+  echo "export DASHBOARD_ADMIN_PASSCODE='pick-something-only-you-know'"
+  echo "export DASHBOARD_SECRET_KEY='$(python3 -c "import secrets; print(secrets.token_hex(32))")'"
+} > .env
 source .env
 ./scripts/run-dashboard.sh
 ```
@@ -97,9 +104,20 @@ here), you have to `source` it yourself each session.
 - **If `DASHBOARD_ADMIN_PASSCODE` isn't set, `/admin` 404s outright** —
   there's no default/fallback passcode shipped, on purpose. The public
   leaderboard and submission pages still work either way.
+- **If `DASHBOARD_SECRET_KEY` isn't set**, the dashboard still runs
+  fine, but it generates a random one for that process only — meaning
+  if the dashboard ever restarts mid-event (crash, power outage,
+  you stopping and restarting it), every team's login session is
+  invalidated and they have to re-enter their team name + PIN. Their
+  scores are completely safe either way (always on disk, never lost)
+  — this only affects whether players stay logged in. Set a stable
+  key, as above, so a restart doesn't cost anyone their session too.
 - Each run keeps its state in `dashboard/instance/dashboard.sqlite3`
   until you reset it (see below) — stopping and restarting the server
-  does *not* clear scores.
+  does *not* clear scores. With a stable `DASHBOARD_SECRET_KEY`, it
+  doesn't clear logins either — teams (and you, in `/admin`) stay
+  signed in across a restart, and even across closing and reopening
+  their own browser, for up to 12 hours.
 
 ## Event-day flow
 
@@ -148,6 +166,31 @@ they weren't staring at the hints page when you answered.
 - This is unrelated to the flag/scoring system entirely — asking for
   a hint doesn't cost points, and there's no limit on how many
   questions a team can send.
+
+## Give Hint (automatic broadcast to every team)
+
+Besides replying to individual hint threads, `/admin` has a single
+**Give Hint** button that messages every team at once — a mix of real
+nudges and taunts/decoy hints, so teams can't assume every message from
+you is genuine.
+
+- Each click freshly checks (never cached, re-run every time) how many
+  teams currently have an unanswered question waiting. **Half or more
+  of all teams waiting** → everyone gets a real hint. **Otherwise**
+  → everyone gets a taunt instead.
+- Both hints and taunts are tailored per team, based on each team's own
+  progress (how many genuine flags they've found so far) — a team on
+  stage 1 and a team on stage 4 get different messages, each relevant
+  to where they actually are.
+- Taunts point at a stage's already-findable decoy, loudly — they never
+  hand over a flag value or password, same as every genuine hint.
+- Delivered into each team's own hint thread (`/hints` on their end),
+  so it shows up with the same notification dot as a real reply, and
+  stays exactly as isolated from other teams as every other message in
+  that system — nothing new to worry about there.
+- Use this to keep things moving without reading every team's mind: if
+  most teams are asking for help, give everyone a real boost; if
+  they're quiet, give them a push without just handing out the answer.
 
 ## Resetting for a new run
 

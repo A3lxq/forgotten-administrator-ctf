@@ -28,6 +28,19 @@
     {% endif %}
   </div>
 
+  <div class="card">
+    <form method="post" action="{{ url_for('admin.give_hint') }}"
+          onsubmit="return confirm('Send every team a message now? If half or more of all teams are currently waiting on a reply, everyone gets a genuine hint tailored to their own progress -- otherwise everyone gets a taunt instead.');">
+      <button type="submit" class="btn-primary">Give Hint</button>
+    </form>
+    <p class="meta">
+      Sends every team a message in their own hint thread, tailored to
+      their own progress. Genuine hint if half or more of all teams are
+      currently waiting on a reply, a taunt otherwise -- checked fresh
+      each time you click.
+    </p>
+  </div>
+
   <h2>Teams ({{ teams|length }})</h2>
   <table class="leaderboard">
     <thead>

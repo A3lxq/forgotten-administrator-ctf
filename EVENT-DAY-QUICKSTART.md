@@ -49,8 +49,10 @@ each piece is otherwise self-contained (see "Get the code" below).
    box's own IP on your LAN.
 7. **Give players**: just that IP. Everything else — materials, the
    decrypt tool, Rules/Flag-Submission docs — is served by the box
-   itself at `/`. `player-material/Getting-Started.md` is what they
-   see; it hands them the `john`/`Summer2019!` web login directly.
+   itself at `/`. For a single document to hand out (print, paste into
+   a chat, whatever's easiest), `player-material/Player-Handout.md` has
+   it all in one place — the `john`/`Summer2019!` web login, rules, and
+   scoring — instead of pointing them at the individual files.
 8. Keep `instructor-material/credentials.md` handy for yourself —
    `ctfbuilder` SSH access and direct troubleshooting, bypassing the
    CTF entirely. (If you only downloaded the OVA and haven't cloned
@@ -80,11 +82,16 @@ on the VM, so a team that roots the box still can't touch scores.
    python3 -m venv dashboard/.venv
    dashboard/.venv/bin/pip install -r dashboard/requirements.txt
    ```
-3. **Create your own admin passcode and start it** — pick your own
-   value here, this is the password that gates `/admin` for your
-   event:
+3. **Create your own admin passcode + a stable login key, and start
+   it** — the passcode gates `/admin`; the key keeps everyone logged
+   in if the dashboard ever has to restart (power outage, crash) —
+   without it, a restart logs every team out (their scores are safe
+   either way, just not the logins):
    ```
-   echo "export DASHBOARD_ADMIN_PASSCODE='pick-something-only-you-know'" > .env
+   {
+     echo "export DASHBOARD_ADMIN_PASSCODE='pick-something-only-you-know'"
+     echo "export DASHBOARD_SECRET_KEY='$(python3 -c "import secrets; print(secrets.token_hex(32))")'"
+   } > .env
    source .env
    ./scripts/run-dashboard.sh
    ```
@@ -93,8 +100,9 @@ on the VM, so a team that roots the box still can't touch scores.
    standalone release instead, there's no `.gitignore` to rely on, so
    just keep that directory itself private. Every time you restart the
    dashboard later, `source .env` again before `run-dashboard.sh` —
-   the passcode isn't saved anywhere else between runs. Binds to
-   `0.0.0.0:7000`.
+   nothing in it is saved anywhere else between runs, and reusing the
+   same `.env` is exactly what keeps everyone's login intact across
+   that restart. Binds to `0.0.0.0:7000`.
 4. **Find this machine's own LAN IP** (`ip addr` / `ifconfig` — note:
    this is the *host's* IP, different from the VM's bridged IP from
    Part A, since they're two separate network presences on the same

@@ -32,6 +32,9 @@ account's login password.)
 
 ## How to submit
 
-Ask your instructor how flags are collected for your event (a form, a
-scoreboard, or handed to them directly). This project does not run a
-public scoring server — your instructor validates flags locally.
+Ask your instructor how flags are collected for your event. Most events
+use the scoring dashboard — a separate address from the CTF box itself,
+where you pick a team name + PIN once and submit flag values as you
+find them, with a live leaderboard. Some events may instead have you
+hand flags to the instructor directly — ask if you're not sure which
+applies to you.

@@ -11,6 +11,7 @@ import functools
 
 from flask import Blueprint, abort, current_app, jsonify, redirect, render_template, request, session, url_for
 
+from . import hint_content
 from .db import get_db, init_db, reset_db
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -41,6 +42,7 @@ def login():
         passcode = request.form.get("passcode", "")
         if passcode and passcode == current_app.config["ADMIN_PASSCODE"]:
             session["is_admin"] = True
+            session.permanent = True  # survives a browser restart too, same as team sessions
             return redirect(url_for("admin.dashboard"))
         error = "Wrong passcode."
     return render_template("admin_login.html", error=error)
@@ -239,3 +241,45 @@ def hints_state():
     shows up live without a manual refresh."""
     db = get_db()
     return jsonify({"waiting_count": _teams_waiting_for_reply(db)})
+
+
+@bp.route("/give-hint", methods=("POST",))
+@admin_required
+def give_hint():
+    """One button, two outcomes, decided fresh on every click (never
+    cached) by how many teams currently have an unanswered hint
+    request outstanding -- the same "waiting" definition already used
+    by the inbox badge, re-queried here rather than reusing a stored
+    count, since the whole point is this check recurs every time:
+
+    - >=50% of teams waiting on a reply right now -> every team gets a
+      genuine, stage-tailored hint.
+    - otherwise -> every team gets a stage-tailored taunt instead.
+
+    Each team's message lands only in that team's own thread, via the
+    exact same messages-table insert the admin hint-reply path already
+    uses, so broadcasting introduces no new cross-team visibility.
+    """
+    db = get_db()
+    teams = db.execute("SELECT id FROM teams").fetchall()
+    if not teams:
+        return redirect(url_for("admin.dashboard"))
+
+    total_teams = len(teams)
+    waiting_count = _teams_waiting_for_reply(db)
+    mode = "hint" if waiting_count * 2 >= total_teams else "taunt"
+
+    genuine_total = current_app.flag_book.genuine_count
+    for t in teams:
+        row = db.execute(
+            "SELECT COUNT(*) AS n FROM submissions WHERE team_id = ? AND classification = 'genuine'",
+            (t["id"],),
+        ).fetchone()
+        stage = hint_content.stage_for_progress(row["n"], genuine_total)
+        body = hint_content.pick_message(stage, mode)
+        db.execute(
+            "INSERT INTO messages (team_id, sender, body) VALUES (?, 'admin', ?)",
+            (t["id"], body),
+        )
+    db.commit()
+    return redirect(url_for("admin.dashboard"))

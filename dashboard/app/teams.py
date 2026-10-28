@@ -76,6 +76,12 @@ def claim():
             if error is None:
                 session.clear()
                 session["team_id"] = team_id
+                # Permanent (see PERMANENT_SESSION_LIFETIME in
+                # __init__.py): survives the team's own browser being
+                # closed and reopened, not just page navigation within
+                # one tab -- matters for "the event resumed after a
+                # power outage" to actually mean something for players.
+                session.permanent = True
                 return redirect(url_for("teams.submit"))
 
     return render_template("claim.html", error=error)

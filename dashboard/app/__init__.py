@@ -8,6 +8,7 @@ submissions. See instructor-material/dashboard-guide.md.
 """
 from __future__ import annotations
 
+import datetime
 import os
 import secrets
 from pathlib import Path
@@ -16,6 +17,14 @@ from flask import Flask
 
 from . import db as db_module
 from .flags import FlagBook
+
+# Keeps a team logged in across a dashboard restart (e.g. a power
+# outage) as long as DASHBOARD_SECRET_KEY is set, and across their own
+# browser being closed/reopened for this long -- a session cookie is
+# otherwise cleared when the browser itself closes, regardless of the
+# server's key. Generous on purpose: a long workshop day plus margin,
+# not just the 2-hour event window itself.
+PERMANENT_SESSION_LIFETIME = datetime.timedelta(hours=12)
 
 
 def create_app(config: dict | None = None) -> Flask:
@@ -30,15 +39,18 @@ def create_app(config: dict | None = None) -> Flask:
 
     admin_passcode = os.environ.get("DASHBOARD_ADMIN_PASSCODE")
     secret_key = os.environ.get("DASHBOARD_SECRET_KEY")
+    secret_key_is_stable = bool(secret_key)
     if not secret_key:
-        # A random-per-process key is fine for a single-run event (admin
-        # sessions just get invalidated if the process restarts) and is
-        # strictly safer than a predictable default, since this key
-        # gates the "End Event"/reset admin actions.
+        # A random-per-process fallback is still strictly safer than a
+        # predictable default (this key also gates /admin sessions),
+        # but it means EVERY team gets logged out if the process ever
+        # restarts -- set DASHBOARD_SECRET_KEY for a real event so a
+        # crash/power outage doesn't cost everyone their login.
         secret_key = secrets.token_hex(32)
 
     app.config.from_mapping(
         SECRET_KEY=secret_key,
+        PERMANENT_SESSION_LIFETIME=PERMANENT_SESSION_LIFETIME,
         DATABASE=os.path.join(app.instance_path, "dashboard.sqlite3"),
         FLAG_MANIFEST_PATH=str(default_manifest_path),
         ADMIN_PASSCODE=admin_passcode,
@@ -62,6 +74,15 @@ def create_app(config: dict | None = None) -> Flask:
             "DASHBOARD_ADMIN_PASSCODE is not set -- /admin is unreachable "
             "(by design: no default passcode is shipped). Set it before "
             "a real event: export DASHBOARD_ADMIN_PASSCODE='...'"
+        )
+    if not secret_key_is_stable:
+        app.logger.warning(
+            "DASHBOARD_SECRET_KEY is not set -- using a random key for "
+            "this process only. If the dashboard restarts for any reason "
+            "(crash, power outage), every team's login session is "
+            "invalidated (their scores are safe either way -- only the "
+            "login itself is affected). Set it before a real event: "
+            "export DASHBOARD_SECRET_KEY='...'"
         )
 
     from . import teams, leaderboard, admin as admin_module, rules, hints

@@ -4,7 +4,10 @@ A story-driven Linux CTF: OSINT → file metadata → Git history and
 cryptography → a vulnerable web application → a Linux admin shell →
 privilege escalation → a final, root-protected, encrypted artifact.
 
-Read in this order:
+In a hurry? [`Player-Handout.md`](Player-Handout.md) is everything
+below in one concise document — the story hook, your starting
+credential, tools, scoring, and the rules. Otherwise, read in this
+order:
 
 1. [`Story.md`](Story.md) — what's going on and who these people are.
 2. [`Rules.md`](Rules.md) — scope and conduct.
