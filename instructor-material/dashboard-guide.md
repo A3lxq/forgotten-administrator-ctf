@@ -103,6 +103,25 @@ here), you have to `source` it yourself each session.
    or griefing team, and reload the flag manifest if you regenerated
    flags mid-setup.
 
+## Hint requests (teams -> you, never team -> team)
+
+Teams can ask you for a hint from their own dashboard ("ask for a
+hint" in the nav, or `/hints`). This is a one-to-one thread between
+that team and you — **teams can never see or contact each other**
+through this, enforced structurally (every team-facing route is
+scoped to that team's own login session, not a value anyone can pass
+in), not just hidden by the UI.
+
+- The main `/admin` page shows a live "N teams waiting for a reply"
+  badge the moment any team asks something.
+- `/admin/hints` lists every team's thread, waiting ones first; click
+  a team to read the full conversation and reply.
+- The team sees your reply appear on their own `/hints` page within a
+  few seconds, without needing to refresh.
+- This is unrelated to the flag/scoring system entirely — asking for
+  a hint doesn't cost points, and there's no limit on how many
+  questions a team can send.
+
 ## Resetting for a new run
 
 ```
@@ -122,6 +141,8 @@ Run this between separate groups/classes, the same way you'd run
   reads it off disk at startup; it is never served over any route.
 - Each other's PINs (hashed, same as the main CTF app's own web
   passwords — never stored or logged in plaintext).
+- Each other's hint requests or your replies to other teams — every
+  team only ever sees its own thread with you.
 
 ## Running the dashboard's own tests
 
