@@ -9,8 +9,8 @@
   const COLORS = ["#39ff14", "#22d3ee", "#e879f9", "#facc15", "#ff4d6d", "#60a5fa", "#fb923c", "#a78bfa"];
   const SVG_NS = "http://www.w3.org/2000/svg";
   const W = 900;
-  const H = 280;
-  const PAD = { top: 16, right: 16, bottom: 28, left: 46 };
+  const H = 340;
+  const PAD = { top: 20, right: 16, bottom: 28, left: 50 };
 
   function parseTime(sqliteDatetime) {
     // "YYYY-MM-DD HH:MM:SS" -> needs a 'T' for reliable cross-browser parsing.
@@ -57,21 +57,38 @@
 
     const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: "100%", height: H, role: "img" });
 
-    // Gridlines + Y-axis labels (4 bands).
+    // Gridlines + Y-axis labels (4 bands) -- brighter than a typical
+    // subtle grid, this chart is meant to be noticed, not blend in.
     for (let i = 0; i <= 4; i++) {
       const score = Math.round((maxScore / 4) * i);
       const gy = y(score);
-      svg.appendChild(el("line", { x1: PAD.left, x2: W - PAD.right, y1: gy, y2: gy, stroke: "#1f2937", "stroke-width": 1 }));
+      svg.appendChild(el("line", { x1: PAD.left, x2: W - PAD.right, y1: gy, y2: gy, stroke: "#2a3650", "stroke-width": 1 }));
       const label = document.createElementNS(SVG_NS, "text");
-      label.setAttribute("x", PAD.left - 8);
+      label.setAttribute("x", PAD.left - 10);
       label.setAttribute("y", gy + 4);
       label.setAttribute("text-anchor", "end");
-      label.setAttribute("fill", "#9ca3af");
-      label.setAttribute("font-size", "11");
+      label.setAttribute("fill", "#c5cad4");
+      label.setAttribute("font-size", "12");
+      label.setAttribute("font-weight", "700");
       label.setAttribute("font-family", "ui-monospace, Consolas, Monaco, monospace");
       label.textContent = String(score);
       svg.appendChild(label);
     }
+
+    // Defs: a glow filter per color, reused by that color's line + points.
+    const defs = el("defs", {});
+    series.forEach((s, i) => {
+      const color = COLORS[i % COLORS.length];
+      const filter = el("filter", { id: `chart-glow-${i}`, x: "-60%", y: "-60%", width: "220%", height: "220%" });
+      const blur = el("feGaussianBlur", { stdDeviation: "4", result: "blur" });
+      const merge = el("feMerge", {});
+      merge.appendChild(el("feMergeNode", { in: "blur" }));
+      merge.appendChild(el("feMergeNode", { in: "SourceGraphic" }));
+      filter.appendChild(blur);
+      filter.appendChild(merge);
+      defs.appendChild(filter);
+    });
+    svg.appendChild(defs);
 
     series.forEach((s, i) => {
       const color = COLORS[i % COLORS.length];
@@ -87,10 +104,16 @@
       });
       d += ` L ${x(now)} ${y(prevScore)}`;
 
-      svg.appendChild(el("path", { d, fill: "none", stroke: color, "stroke-width": 2 }));
+      svg.appendChild(el("path", {
+        d, fill: "none", stroke: color, "stroke-width": 4,
+        "stroke-linejoin": "round", filter: `url(#chart-glow-${i})`,
+      }));
 
       s.points.forEach((p) => {
-        svg.appendChild(el("circle", { cx: x(parseTime(p.t)), cy: y(p.score), r: 3, fill: color }));
+        svg.appendChild(el("circle", {
+          cx: x(parseTime(p.t)), cy: y(p.score), r: 6, fill: color,
+          stroke: "#0a0e17", "stroke-width": 2, filter: `url(#chart-glow-${i})`,
+        }));
       });
     });
 

@@ -513,6 +513,16 @@ table.leaderboard .score {
   font-size: 16px;
 }
 
+.chart-heading {
+  color: var(--accent-cyan);
+  font-size: 15px;
+}
+
+.chart-card {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.18);
+}
+
 #progression-chart svg {
   display: block;
   width: 100%;
@@ -522,21 +532,22 @@ table.leaderboard .score {
 .chart-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 10px;
+  gap: 16px;
+  margin-top: 14px;
 }
 
 .chart-legend-item {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--fg-muted);
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-default);
 }
 
 .chart-legend-swatch {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
 }
