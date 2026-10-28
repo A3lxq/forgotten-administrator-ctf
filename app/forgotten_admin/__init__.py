@@ -65,4 +65,23 @@ def create_app(config: dict | None = None) -> Flask:
     def healthz():
         return {"status": "ok"}
 
+    @app.route("/robots.txt")
+    def robots_txt():
+        from flask import Response
+
+        # Pure flavor, not a hint: every path below is fictional or
+        # already a dead end elsewhere (/admin/diagnostics is teased in
+        # the admin handover record but was never actually built; the
+        # "forbidden" OSINT page just leads to the employee directory's
+        # own joke). None of this disallows anything that matters.
+        body = (
+            "User-agent: *\n"
+            "Disallow: /admin/diagnostics/\n"
+            "Disallow: /backup-2019/\n"
+            "Disallow: /old-site/\n"
+            "Disallow: /internal-tools/\n"
+            "Disallow: /materials/osint/lol.html\n"
+        )
+        return Response(body, mimetype="text/plain")
+
     return app

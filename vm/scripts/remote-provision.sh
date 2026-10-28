@@ -89,6 +89,46 @@ EOF
 sudo chmod 750 /home/admin /home/admin/evidence /home/admin/flags
 sudo chown -R admin:admin /home/admin
 
+echo "== Planting a troll file in john's home directory (pure flavor -- no flag) =="
+# /home/john only becomes reachable once a player has a shell (as admin,
+# then root) -- cloud-init's default home perms aren't world-readable, so
+# this is chmod'd open deliberately, same pattern as /home/admin above.
+sudo -u john mkdir -p /home/john
+sudo -u john tee /home/john/IMPORTANT_README.txt >/dev/null <<'EOF'
+If you're reading this, you've already proven something most people
+never do: you didn't give up. You pushed through locked doors, dead
+ends, decoys, and probably at least one moment where you wanted to
+close the laptop and go outside.
+
+I want you to know that whatever happens next in this exercise, that
+persistence is real, and it's yours. Nobody can take that from you.
+
+I'm about to tell you something I never told anyone else at this
+company -- not my manager, not the security team, not even the person
+who replaced me. It's the real reason any of this happened the way it
+did. It explains everything. It's the missing piece.
+
+Are you ready?
+
+.
+.
+.
+
+No.
+
+No you are not. And honestly? Neither was I. This file doesn't contain
+anything useful. There is no missing piece. There is no secret. You
+just spent thirty seconds reading a stranger's pep talk on a box you
+rooted.
+
+Go check root_note.txt if you haven't yet. Or don't. Either way, you're
+doing great.
+
+-- jtyler_dev, probably still not rotating his passwords
+EOF
+sudo chmod 755 /home/john
+sudo chmod 644 /home/john/IMPORTANT_README.txt
+
 echo "== Laying out player materials (Stage 1-3 content, served by the app) =="
 PUBLIC_DATA_DIR=/opt/forgotten-admin/public-data
 sudo mkdir -p "$PUBLIC_DATA_DIR"

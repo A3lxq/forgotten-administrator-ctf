@@ -62,3 +62,28 @@ def test_path_traversal_is_rejected(client):
 def test_nonexistent_material_404s(client):
     resp = client.get("/materials/osint/does-not-exist.html")
     assert resp.status_code == 404
+
+
+def test_employee_directory_is_public_and_links_to_real_profile(client):
+    resp = client.get("/materials/osint/directory.html")
+    assert resp.status_code == 200
+    assert b'href="profile.html"' in resp.data  # the one real link in the list
+
+
+def test_fake_employees_all_land_on_the_same_joke_page(client):
+    resp = client.get("/materials/osint/lol.html")
+    assert resp.status_code == 200
+    assert b"LOL" in resp.data
+
+
+def test_robots_txt_is_public_and_fictional(client):
+    resp = client.get("/robots.txt")
+    assert resp.status_code == 200
+    assert resp.mimetype == "text/plain"
+    # None of these should be real routes -- confirms the bait paths
+    # don't accidentally disallow anything that actually matters.
+    for path in (b"/admin/diagnostics/", b"/backup-2019/", b"/old-site/", b"/internal-tools/"):
+        assert path in resp.data
+    for real_path in (b"Disallow: /materials/osint/profile.html", b"Disallow: /materials/osint/project-page.html",
+                       b"Disallow: /materials/\n", b"/records/", b"/login"):
+        assert real_path not in resp.data
