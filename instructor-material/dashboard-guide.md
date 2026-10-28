@@ -47,6 +47,25 @@ command above from inside the extracted directory. **It includes
 score flags) — that's the full answer key, so don't hand this specific
 archive to players even though the repo itself is public.
 
+## Trying it out without the CTF VM
+
+Want to see the leaderboard and score-over-time chart actually
+working — live winner banner, confetti, the chart populating — without
+powering up the VM at all? Start the dashboard (below), then in
+another terminal:
+```
+./scripts/demo-dashboard.sh
+```
+This creates five fake teams and submits the real flag values (read
+from `flag-manifest.json`, the same source of truth the dashboard
+itself validates against) over HTTP, the exact same route a real
+player's browser uses — just several simulated teams instead of one.
+Takes under a minute; open `/leaderboard` while it runs to watch it
+update live. Safe to re-run (resubmitting a flag a team already has is
+a no-op); run `./scripts/reset-dashboard.sh` first for a clean demo,
+and again afterward before a real event so none of this fake data is
+still sitting there.
+
 ## Starting it for an event
 
 ```
