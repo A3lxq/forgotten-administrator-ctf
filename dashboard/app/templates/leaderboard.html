@@ -15,7 +15,7 @@
     </div>
     <div class="stat-tile magenta">
       <div class="label">Status</div>
-      <div class="value" id="stat-status" style="font-size:16px;">In progress</div>
+      <div class="value stat-status-value" id="stat-status">In progress</div>
     </div>
   </div>
 
@@ -40,6 +40,12 @@
     </tbody>
   </table>
 
+  <h2>Score over time</h2>
+  <div class="card">
+    <div id="progression-chart"><p class="meta">Loading…</p></div>
+  </div>
+
   <script src="{{ url_for('static', filename='confetti.js') }}"></script>
   <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='chart.js') }}"></script>
 {% endblock %}

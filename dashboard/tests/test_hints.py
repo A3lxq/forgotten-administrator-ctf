@@ -138,3 +138,65 @@ def test_reset_wipes_messages_too(client):
     inbox = client.get("/admin/hints")
     assert b"gone after reset" not in inbox.data
     assert b"No teams have asked anything yet" in inbox.data
+
+
+# --- Unread notification ---
+
+
+def test_no_unread_before_any_admin_reply(client):
+    claim_team(client, "Alpha", "1234")
+    client.post("/hints", data={"body": "a question"})  # own message, not admin's
+    assert client.get("/hints/unread").get_json() == {"unread": False}
+
+
+def test_unread_becomes_true_after_admin_reply(client):
+    claim_team(client, "Alpha", "1234")
+    client.post("/hints", data={"body": "a question"})
+
+    with client.application.test_client() as admin_client:
+        admin_login(admin_client)
+        admin_client.post("/admin/hints/1", data={"body": "here's a nudge"})
+
+    assert client.get("/hints/unread").get_json() == {"unread": True}
+
+
+def test_visiting_hints_page_marks_it_read(client):
+    claim_team(client, "Alpha", "1234")
+    client.post("/hints", data={"body": "a question"})
+    with client.application.test_client() as admin_client:
+        admin_login(admin_client)
+        admin_client.post("/admin/hints/1", data={"body": "reply"})
+
+    assert client.get("/hints/unread").get_json()["unread"] is True
+    client.get("/hints")  # visiting the page itself marks it read
+    assert client.get("/hints/unread").get_json()["unread"] is False
+
+
+def test_polling_state_also_marks_it_read(client):
+    claim_team(client, "Alpha", "1234")
+    client.post("/hints", data={"body": "a question"})
+    with client.application.test_client() as admin_client:
+        admin_login(admin_client)
+        admin_client.post("/admin/hints/1", data={"body": "reply"})
+
+    assert client.get("/hints/unread").get_json()["unread"] is True
+    client.get("/hints/state")  # polling also counts as reading
+    assert client.get("/hints/unread").get_json()["unread"] is False
+
+
+def test_unread_is_isolated_between_teams(client):
+    claim_team(client, "Alpha", "1234")
+    client.post("/hints", data={"body": "alpha's question"})
+
+    with client.application.test_client() as beta:
+        claim_team(beta, "Beta", "5678")
+
+        with client.application.test_client() as admin_client:
+            admin_login(admin_client)
+            admin_client.post("/admin/hints/1", data={"body": "reply to alpha only"})
+
+        # Beta has no messages at all -- must not show unread just
+        # because some other team got a reply.
+        assert beta.get("/hints/unread").get_json() == {"unread": False}
+
+    assert client.get("/hints/unread").get_json() == {"unread": True}

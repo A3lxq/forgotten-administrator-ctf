@@ -44,6 +44,14 @@ def thread():
         (g.team["id"],),
     ).fetchall()
 
+    # Visiting the page itself is what marks the thread "read" -- the
+    # polled /hints/unread endpoint below only ever reports, never marks.
+    db.execute(
+        "UPDATE teams SET hints_last_read_at = datetime('now', 'localtime') WHERE id = ?",
+        (g.team["id"],),
+    )
+    db.commit()
+
     return render_template("hints.html", messages=messages, error=error)
 
 
@@ -60,6 +68,15 @@ def state():
         "WHERE team_id = ? ORDER BY sent_at ASC",
         (g.team["id"],),
     ).fetchall()
+    # A team polling /hints/state with the page already open is
+    # implicitly "reading" new replies as they arrive too -- keep
+    # hints_last_read_at current so the nav badge (polled from every
+    # other page) doesn't also claim there's something unread here.
+    db.execute(
+        "UPDATE teams SET hints_last_read_at = datetime('now', 'localtime') WHERE id = ?",
+        (g.team["id"],),
+    )
+    db.commit()
     return jsonify(
         {
             "messages": [
@@ -68,3 +85,23 @@ def state():
             ]
         }
     )
+
+
+@bp.route("/hints/unread")
+@team_required
+def unread():
+    """Polled from the shared nav (every team-facing page) so a team
+    notices an admin reply even while browsing the leaderboard/rules/
+    submit pages, not just while /hints itself is open."""
+    db = get_db()
+    row = db.execute(
+        """
+        SELECT COUNT(*) AS n FROM messages
+        WHERE team_id = ? AND sender = 'admin'
+          AND sent_at > COALESCE(
+              (SELECT hints_last_read_at FROM teams WHERE id = ?), ''
+          )
+        """,
+        (g.team["id"], g.team["id"]),
+    ).fetchone()
+    return jsonify({"unread": row["n"] > 0})

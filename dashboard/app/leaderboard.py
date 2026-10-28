@@ -92,3 +92,30 @@ def state():
             "final_winner": team_name(event["final_winner_team_id"]),
         }
     )
+
+
+@bp.route("/progression")
+def progression():
+    """Per-team cumulative score over time, for the leaderboard's
+    score-progression chart. Every submission is a point (including
+    decoys, at +0) so the chart also shows *when* each team was
+    active, not just genuine scoring moments. team_id is never exposed
+    -- only names, same as /state."""
+    db = get_db()
+    teams = db.execute("SELECT id, name FROM teams ORDER BY name ASC").fetchall()
+
+    series = []
+    for t in teams:
+        subs = db.execute(
+            "SELECT points_awarded, submitted_at FROM submissions "
+            "WHERE team_id = ? ORDER BY submitted_at ASC, id ASC",
+            (t["id"],),
+        ).fetchall()
+        points = []
+        running = 0
+        for s in subs:
+            running += s["points_awarded"]
+            points.append({"t": s["submitted_at"], "score": running})
+        series.append({"name": t["name"], "points": points})
+
+    return jsonify({"series": series})

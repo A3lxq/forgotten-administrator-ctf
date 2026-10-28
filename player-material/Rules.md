@@ -17,3 +17,9 @@
    find a way to break the lab that seems unintended (not one of the
    five documented stages), stop and tell your instructor rather than
    using it to skip ahead.
+7. **No AI assistance.** Don't use ChatGPT, Copilot, or any other AI
+   tool to solve stages or find flags. This is a skills assessment —
+   solve it yourself, with your own team, using your own reasoning.
+8. **No flag sharing.** Don't give, trade, or post your flags (genuine
+   or decoy) to or for another team, in person or otherwise. Every
+   team finds and submits its own — that's what's being assessed.

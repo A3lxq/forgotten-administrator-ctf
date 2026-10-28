@@ -493,3 +493,50 @@ table.leaderboard .score {
   white-space: nowrap;
   flex: 1;
 }
+
+.unread-dot {
+  display: none;
+  width: 7px;
+  height: 7px;
+  margin-left: 5px;
+  border-radius: 50%;
+  background: var(--accent-magenta);
+  box-shadow: 0 0 6px rgba(232, 121, 249, 0.8);
+  vertical-align: middle;
+}
+
+.unread-dot.show {
+  display: inline-block;
+}
+
+.stat-status-value {
+  font-size: 16px;
+}
+
+#progression-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+.chart-legend-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
