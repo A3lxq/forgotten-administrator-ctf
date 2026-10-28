@@ -205,7 +205,12 @@ you is genuine.
   stage 1 and a team on stage 4 get different messages, each relevant
   to where they actually are.
 - Taunts point at a stage's already-findable decoy, loudly — they never
-  hand over a flag value or password, same as every genuine hint.
+  hand over a flag value or password, same as every genuine hint. Some
+  also point at the pure-flavor distractions that aren't tied to any
+  flag at all (the SynHub employee directory, password-trap.txt, john's
+  IMPORTANT_README.txt) — a stage 1 taunt may nudge a team toward
+  trying the password-trap credentials over SSH, which is its own
+  reward.
 - Delivered into each team's own hint thread (`/hints` on their end),
   so it shows up with the same notification dot as a real reply, and
   stays exactly as isolated from other teams as every other message in

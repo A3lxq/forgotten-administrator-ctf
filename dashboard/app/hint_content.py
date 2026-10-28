@@ -13,6 +13,11 @@ genuine/decoy philosophy elsewhere:
   here), loud and a little smug, never literally handing over the
   decoy's flag value either. Several variants per bucket so repeated
   broadcasts don't feel identical.
+- Taunts also point at the pure-flavor distractions that aren't tied
+  to any flag at all (the SynHub employee directory, password-trap.txt,
+  john's IMPORTANT_README.txt) -- these cost a team nothing but time,
+  same spirit as the FFLAG decoys, just with no flag value sitting at
+  the end of the detour.
 - In-story voice: dry, a little knowing, consistent with the existing
   decoy asides (e.g. root_note.txt's "Finally got root, huh?").
 """
@@ -35,6 +40,12 @@ STAGE_CONTENT: dict[int | str, dict[str, list[str]]] = {
             "catches the eye, doesn't it? Almost like it wants to be found.",
             "A 'cached status badge' with a flag-shaped string sitting "
             "right in the middle of the page. Convenient.",
+            "There's a whole 'Employee Directory' linked right next to "
+            "John's profile. Every single name in it is clearly worth a "
+            "click.",
+            "Somebody left an entire credential dump sitting in the OSINT "
+            "folder. If you've got a password and a box with SSH open, "
+            "you already know what to try.",
         ],
     },
     2: {  # Metadata
@@ -83,6 +94,9 @@ STAGE_CONTENT: dict[int | str, dict[str, list[str]]] = {
             "An admin password handed to you in plain text inside "
             "someone else's record. Almost feels like the system wants "
             "you to have it.",
+            "Once you're in as admin, it might be worth poking around "
+            "john's home directory too. He apparently left something "
+            "very important in there.",
         ],
     },
     5: {  # Linux privesc + final artifact
