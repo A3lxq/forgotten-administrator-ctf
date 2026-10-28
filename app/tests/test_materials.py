@@ -76,6 +76,22 @@ def test_fake_employees_all_land_on_the_same_joke_page(client):
     assert b"LOL" in resp.data
 
 
+def test_employee_directory_links_the_password_trap(client):
+    resp = client.get("/materials/osint/directory.html")
+    assert b'href="password-trap.txt"' in resp.data
+    assert b"Synnefo_password_manager" in resp.data
+
+
+def test_password_trap_is_public_and_tells_you_not_to_bother(client):
+    resp = client.get("/materials/osint/password-trap.txt")
+    assert resp.status_code == 200
+    assert b"expired" in resp.data
+    assert b"fired" in resp.data
+    # None of the bait credentials should accidentally be real ones.
+    assert b"Summer2019!" not in resp.data
+    assert b"N3tOps-Diag#7" not in resp.data
+
+
 def test_robots_txt_is_public_and_fictional(client):
     resp = client.get("/robots.txt")
     assert resp.status_code == 200
