@@ -3,6 +3,10 @@
 The complete instructor setup, start to finish — both pieces run on
 your own laptop, nothing on the CTF VM itself hosts the dashboard.
 
+**Prerequisites on this machine**: VirtualBox (or VMware) for the CTF
+box, and Python 3.10+ with `pip` for the dashboard. Nothing else —
+each piece is otherwise self-contained (see "Get the code" below).
+
 ## Part A — The vulnerable CTF box
 
 1. **Download and verify** the latest OVA (`ova-export-v6`) from
@@ -22,44 +26,75 @@ your own laptop, nothing on the CTF VM itself hosts the dashboard.
      this (no extra config). Only ever do this on a LAN you control —
      never shared/public Wi-Fi.
 4. **Power on**, give it a minute to boot.
-5. **Find its address**: for Bridged, open the VirtualBox console
+5. **Take a VirtualBox snapshot now, before any player touches it** —
+   this is how you reset between groups/classes later (`scripts/reset.sh
+   vm` is for the project's own QEMU dev build, not a VirtualBox
+   import, so it won't work here):
+   ```
+   VBoxManage snapshot "forgotten-admin-ctf" take clean-start
+   ```
+   (VM name may differ if you renamed it on import — check
+   `VBoxManage list vms` if unsure.) To reset later: power the VM off,
+   restore that snapshot, power back on:
+   ```
+   VBoxManage controlvm "forgotten-admin-ctf" poweroff
+   VBoxManage snapshot "forgotten-admin-ctf" restore clean-start
+   VBoxManage startvm "forgotten-admin-ctf"
+   ```
+   Or via the GUI: Machine → Tools → Snapshots → right-click
+   `clean-start` → Restore.
+6. **Find its address**: for Bridged, open the VirtualBox console
    window (not SSH) and log in as `john`/`Summer2019!` or
    `admin`/`N3tOps-Diag#7`, then run `hostname -I` — that's the CTF
    box's own IP on your LAN.
-6. **Give players**: just that IP. Everything else — materials, the
+7. **Give players**: just that IP. Everything else — materials, the
    decrypt tool, Rules/Flag-Submission docs — is served by the box
    itself at `/`. `player-material/Getting-Started.md` is what they
    see; it hands them the `john`/`Summer2019!` web login directly.
-7. Keep `instructor-material/credentials.md` handy for yourself —
+8. Keep `instructor-material/credentials.md` handy for yourself —
    `ctfbuilder` SSH access and direct troubleshooting, bypassing the
-   CTF entirely.
+   CTF entirely. (If you only downloaded the OVA and haven't cloned
+   the repo, [view it on GitHub](https://github.com/A3lxq/forgotten-administrator-ctf/blob/master/instructor-material/credentials.md)
+   instead — note that `ctfbuilder`'s SSH key itself still isn't
+   shipped with the OVA either way, by design; only the console
+   `john`/`admin` logins from step 6 work for a downloaded OVA you
+   didn't build yourself.)
 
 ## Part B — The scoring dashboard
 
 Runs as a **separate process on this same laptop** — deliberately not
 on the VM, so a team that roots the box still can't touch scores.
 
-1. **Get the code** — either you already have the full repo, or grab
-   the standalone `dashboard-v2` release if you ever need it on a
-   different machine without the whole project.
+1. **Get the code.** Either clone the full repo:
+   ```
+   git clone https://github.com/A3lxq/forgotten-administrator-ctf.git
+   cd forgotten-administrator-ctf
+   ```
+   or, if you just want the dashboard and not the VM build tooling,
+   grab the standalone
+   [`dashboard-v3`](https://github.com/A3lxq/forgotten-administrator-ctf/releases/tag/dashboard-v3)
+   release and extract it instead — same commands below either way,
+   run from inside whichever directory you end up in.
 2. **One-time setup**:
    ```
    python3 -m venv dashboard/.venv
    dashboard/.venv/bin/pip install -r dashboard/requirements.txt
    ```
-3. **Set the admin passcode and start it.** A `.env` file at the repo
-   root already holds the real event passcode on this machine — create
-   it once like this (never commit it; this repo is public):
+3. **Create your own admin passcode and start it** — pick your own
+   value here, this is the password that gates `/admin` for your
+   event:
    ```
    echo "export DASHBOARD_ADMIN_PASSCODE='pick-something-only-you-know'" > .env
-   ```
-   `.env` is already in `.gitignore`, so it's safe to keep here. Then,
-   every time you start the dashboard:
-   ```
    source .env
    ./scripts/run-dashboard.sh
    ```
-   Binds to `0.0.0.0:7000`.
+   `.env` is already in `.gitignore` if you're in the full repo clone
+   (never commit it — this repo is public); if you extracted the
+   standalone release instead, there's no `.gitignore` to rely on, so
+   just keep that directory itself private. Every time you restart the
+   dashboard later, `source .env` again before `run-dashboard.sh` —
+   the passcode isn't saved anywhere else between runs. Binds to
+   `0.0.0.0:7000`.
 4. **Find this machine's own LAN IP** (`ip addr` / `ifconfig` — note:
    this is the *host's* IP, different from the VM's bridged IP from
    Part A, since they're two separate network presences on the same
@@ -81,10 +116,14 @@ on the VM, so a team that roots the box still can't touch scores.
 - Help players per `player-material/Rules.md` (asking you for a hint
   is allowed).
 - When time's up: `/admin` → **End Event**.
-- Between separate groups/classes: `./scripts/reset.sh vm` for the CTF
-  box, `./scripts/reset-dashboard.sh` (or the admin **Reset** button)
-  for the dashboard — both independent, reset either without touching
-  the other.
+- Between separate groups/classes: restore the `clean-start`
+  VirtualBox snapshot (Part A, step 5) for the CTF box,
+  `./scripts/reset-dashboard.sh` (or the admin **Reset** button) for
+  the dashboard — both independent, reset either without touching the
+  other. (`scripts/reset.sh vm` only applies if you built the VM
+  yourself from source with the project's QEMU tooling — not to a
+  VirtualBox-imported OVA, which is the path this guide actually
+  walks through.)
 
 Full reference docs if you want more detail on any piece: `SETUP.md`
 (box), `instructor-material/instructor-guide.md` (running the event),
