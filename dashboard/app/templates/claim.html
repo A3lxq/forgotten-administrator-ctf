@@ -18,4 +18,20 @@
       <button type="submit" class="btn-primary">Continue</button>
     </form>
   </div>
+
+  <h2>Before you start</h2>
+  <div class="card">
+    <ul class="rules-list rules-summary">
+      <li>Only attack the lab VM you were given — nothing else on the
+        network.</li>
+      <li>No denial-of-service — don't crash/flood the VM or web app.</li>
+      <li>Decoy flags (<code>FFLAG{...}</code>) are real to find, they
+        just don't score — not a mistake, just not the answer.</li>
+      <li>Stuck? Ask your instructor — that's allowed.</li>
+    </ul>
+    <p class="meta rules-footnote">
+      Full rules: <a href="{{ url_for('rules.page') }}">here</a>, also
+      handed out as <code>player-material/Rules.md</code>.
+    </p>
+  </div>
 {% endblock %}

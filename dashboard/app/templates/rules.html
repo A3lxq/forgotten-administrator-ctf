@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Rules{% endblock %}
+{% block content %}
+  <h1>Rules</h1>
+  <div class="card">
+    <ol class="rules-list">
+      <li><strong>Scope.</strong> Only attack the lab VM you were given
+        for this event. Do not attack the host machine running it,
+        other teams' instances, the instructor's machine, or anything
+        outside the lab network.</li>
+      <li><strong>No denial-of-service.</strong> Don't intentionally
+        crash, flood, or lock up the VM or the web app. If something
+        breaks by accident, tell your instructor — they can reset it.</li>
+      <li><strong>No attacking other teams.</strong> If this event has
+        multiple teams/VMs, stay inside your own.</li>
+      <li><strong>Flags are evidence of understanding, not the goal by
+        themselves.</strong> Decoy flags (<code>FFLAG{...}</code>)
+        exist on purpose — they don't cost you anything to find, they
+        just don't score.</li>
+      <li><strong>Ask for hints.</strong> Your instructor can help if
+        you're stuck. Asking is not cheating.</li>
+      <li><strong>Report, don't exploit, anything outside the intended
+        path.</strong> If you find a way to break the lab that seems
+        unintended (not one of the five documented stages), stop and
+        tell your instructor rather than using it to skip ahead.</li>
+    </ol>
+  </div>
+  <p class="meta">Also handed out separately as
+    <code>player-material/Rules.md</code> — same content.</p>
+{% endblock %}

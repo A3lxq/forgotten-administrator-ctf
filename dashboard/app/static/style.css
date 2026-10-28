@@ -405,3 +405,27 @@ table.leaderboard .score {
   pointer-events: none;
   z-index: 1000;
 }
+
+.rules-list {
+  margin: 0;
+  padding-left: 22px;
+}
+
+.rules-list li {
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+
+.rules-list li:last-child { margin-bottom: 0; }
+
+.rules-summary {
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+
+.rules-summary li { margin-bottom: 6px; }
+
+.rules-footnote {
+  margin-top: 12px;
+  margin-bottom: 0;
+}

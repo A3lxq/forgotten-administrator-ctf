@@ -64,11 +64,12 @@ def create_app(config: dict | None = None) -> Flask:
             "a real event: export DASHBOARD_ADMIN_PASSCODE='...'"
         )
 
-    from . import teams, leaderboard, admin as admin_module
+    from . import teams, leaderboard, admin as admin_module, rules
 
     app.register_blueprint(teams.bp)
     app.register_blueprint(leaderboard.bp)
     app.register_blueprint(admin_module.bp)
+    app.register_blueprint(rules.bp)
 
     @app.route("/healthz")
     def healthz():
