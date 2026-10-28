@@ -73,10 +73,10 @@ on the VM, so a team that roots the box still can't touch scores.
    cd forgotten-administrator-ctf
    ```
    or, if you just want the dashboard and not the VM build tooling,
-   grab the standalone
-   [`dashboard-v3`](https://github.com/A3lxq/forgotten-administrator-ctf/releases/tag/dashboard-v3)
-   release and extract it instead — same commands below either way,
-   run from inside whichever directory you end up in.
+   grab the newest standalone `dashboard-vN` package from
+   [Releases](https://github.com/A3lxq/forgotten-administrator-ctf/releases)
+   and extract it instead — same commands below either way, run from
+   inside whichever directory you end up in.
 2. **One-time setup**:
    ```
    python3 -m venv dashboard/.venv
