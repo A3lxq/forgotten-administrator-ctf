@@ -2,7 +2,9 @@
 
 > Private — never player-accessible. This is the exact path verified
 > against the real, built project (not a plan). Every step below has
-> actually been run and its output observed in this session.
+> actually been run and its output observed in this session. Want
+> screenshots alongside each step? See
+> [`solution-walkthrough-with-screenshots.md`](solution-walkthrough-with-screenshots.md).
 
 ## Stage 1 — OSINT (Original Flag 1, 100 pts)
 
