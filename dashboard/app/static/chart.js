@@ -90,17 +90,33 @@
     });
     svg.appendChild(defs);
 
+    // Max width (in px) of the diagonal ramp drawn at each score jump,
+    // instead of a sheer vertical line -- purely cosmetic (matches a
+    // reference leaderboard chart the project owner liked), clamped
+    // per-transition so two fast back-to-back submissions never make a
+    // ramp reach backward past the previous point (the same close-
+    // together-submissions case that motivated this chart's
+    // millisecond-precision timestamp fix elsewhere).
+    const RAMP_PX = 18;
+
     series.forEach((s, i) => {
       const color = COLORS[i % COLORS.length];
       if (s.points.length === 0) return;
 
-      // Step line: start at (first point's time, 0), step up at each submission.
-      let d = `M ${x(parseTime(s.points[0].t))} ${y(0)}`;
+      // Step line with a short diagonal ramp at each submission, rather
+      // than an instantaneous vertical jump -- the ramp always finishes
+      // exactly at the real submission time, so the dot still marks the
+      // true moment it happened.
+      const firstX = x(parseTime(s.points[0].t));
+      let d = `M ${firstX} ${y(0)}`;
       let prevScore = 0;
+      let prevX = firstX;
       s.points.forEach((p) => {
         const px = x(parseTime(p.t));
-        d += ` L ${px} ${y(prevScore)} L ${px} ${y(p.score)}`;
+        const ramp = Math.min(RAMP_PX, px - prevX);
+        d += ` L ${px - ramp} ${y(prevScore)} L ${px} ${y(p.score)}`;
         prevScore = p.score;
+        prevX = px;
       });
       d += ` L ${x(now)} ${y(prevScore)}`;
 
