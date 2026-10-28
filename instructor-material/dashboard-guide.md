@@ -54,6 +54,20 @@ export DASHBOARD_ADMIN_PASSCODE='pick-something-only-you-know'
 ./scripts/run-dashboard.sh
 ```
 
+**Don't want to retype the passcode every time you open a new
+terminal?** Put the `export` line in a `.env` file at the repo root and
+`source .env` instead of typing it inline:
+```
+echo "export DASHBOARD_ADMIN_PASSCODE='pick-something-only-you-know'" > .env
+source .env
+./scripts/run-dashboard.sh
+```
+`.env` is already in `.gitignore` — it will never be committed, which
+matters here since this repo is public (see the warning at the top of
+this doc). Treat it like any other secret file: it's local-only,
+nothing reads it automatically (Flask doesn't auto-load `.env` files
+here), you have to `source` it yourself each session.
+
 - Binds to `0.0.0.0:7000` by default (override with `DASHBOARD_PORT`) so
   every player on the same LAN the CTF VM is already bridged onto can
   reach it — find this machine's own LAN IP (`ip addr` / `ifconfig`) and
