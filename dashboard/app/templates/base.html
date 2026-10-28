@@ -13,6 +13,7 @@
       <span class="session">
         {% if g.get('team') %}
           team <strong>{{ g.team["name"] }}</strong>
+          · <a href="{{ url_for('hints.thread') }}">ask for a hint</a>
           · <a href="{{ url_for('teams.logout') }}">switch team</a>
         {% else %}
           <a href="{{ url_for('teams.claim') }}">join / resume a team</a>

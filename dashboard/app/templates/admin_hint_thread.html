@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Hints — {{ team["name"] }}{% endblock %}
+{% block content %}
+  <h1>Hints — {{ team["name"] }}</h1>
+  <p class="meta"><a href="{{ url_for('admin.hints_inbox') }}">&larr; back to all teams</a></p>
+
+  <div class="chat-thread">
+    {% for m in messages %}
+      <div class="chat-bubble {{ 'from-team' if m['sender'] == 'team' else 'from-admin' }}">
+        <div class="chat-meta">{{ team["name"] if m['sender'] == 'team' else 'you (instructor)' }} &middot; {{ m['sent_at'] }}</div>
+        <div class="chat-body">{{ m['body'] }}</div>
+      </div>
+    {% else %}
+      <p class="meta">No messages yet.</p>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <form method="post" class="auth-form">
+      <div class="field">
+        <label for="body">Reply to {{ team["name"] }}</label>
+        <input id="body" name="body" autocomplete="off" maxlength="2000">
+      </div>
+      <button type="submit" class="btn-primary">Send reply</button>
+    </form>
+  </div>
+{% endblock %}

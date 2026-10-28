@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Hint requests{% endblock %}
+{% block content %}
+  <h1>Hint requests</h1>
+  <p class="meta"><a href="{{ url_for('admin.dashboard') }}">&larr; back to instructor controls</a></p>
+
+  <ul class="file-list">
+    {% for t in threads %}
+      <li>
+        <a href="{{ url_for('admin.hint_thread', team_id=t['id']) }}">{{ t["name"] }}</a>
+        {% if t["last_sender"] == "team" %}
+          <span class="waiting-badge">waiting</span>
+        {% endif %}
+        <span class="preview">{{ t["last_body"] }}</span>
+        <span class="desc">{{ t["last_sent_at"] }}</span>
+      </li>
+    {% else %}
+      <li><span class="meta">No teams have asked anything yet.</span></li>
+    {% endfor %}
+  </ul>
+{% endblock %}

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import functools
 
-from flask import Blueprint, abort, current_app, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, current_app, jsonify, redirect, render_template, request, session, url_for
 
 from .db import get_db, init_db, reset_db
 
@@ -87,6 +87,27 @@ def _final_winner_with_tiebreak(db) -> int | None:
     return best_team_id
 
 
+def _teams_waiting_for_reply(db) -> int:
+    """A team is 'waiting' if its most recent message is from the team
+    itself (nobody from admin has answered it yet). Ties on sent_at
+    (SQLite's datetime('now') only has 1-second resolution, so a
+    question and a fast reply can land in the same second) are broken
+    by id, which is strictly insertion-ordered -- without this, two
+    same-second rows have no reliable "most recent" and ROW_NUMBER()'s
+    tie order is unspecified."""
+    row = db.execute(
+        """
+        SELECT COUNT(*) AS n FROM (
+            SELECT team_id, sender,
+                   ROW_NUMBER() OVER (PARTITION BY team_id ORDER BY sent_at DESC, id DESC) AS rn
+            FROM messages
+        )
+        WHERE rn = 1 AND sender = 'team'
+        """
+    ).fetchone()
+    return row["n"]
+
+
 @bp.route("/")
 @admin_required
 def dashboard():
@@ -108,6 +129,7 @@ def dashboard():
         teams=teams,
         event=event,
         genuine_total=current_app.flag_book.genuine_count,
+        waiting_count=_teams_waiting_for_reply(db),
     )
 
 
@@ -145,6 +167,7 @@ def reset():
 @admin_required
 def remove_team(team_id: int):
     db = get_db()
+    db.execute("DELETE FROM messages WHERE team_id = ?", (team_id,))
     db.execute("DELETE FROM submissions WHERE team_id = ?", (team_id,))
     db.execute("DELETE FROM teams WHERE id = ?", (team_id,))
     db.execute(
@@ -153,3 +176,66 @@ def remove_team(team_id: int):
     )
     db.commit()
     return redirect(url_for("admin.dashboard"))
+
+
+@bp.route("/hints")
+@admin_required
+def hints_inbox():
+    db = get_db()
+    # "Last message" subqueries all break sent_at ties by id -- SQLite's
+    # datetime('now') only has 1-second resolution, so two messages for
+    # the same team can land in the same second with no other reliable
+    # ordering (same issue as _teams_waiting_for_reply above).
+    rows = db.execute(
+        """
+        SELECT t.id, t.name,
+               (SELECT body FROM messages m WHERE m.team_id = t.id
+                ORDER BY m.sent_at DESC, m.id DESC LIMIT 1) AS last_body,
+               (SELECT sender FROM messages m WHERE m.team_id = t.id
+                ORDER BY m.sent_at DESC, m.id DESC LIMIT 1) AS last_sender,
+               (SELECT sent_at FROM messages m WHERE m.team_id = t.id
+                ORDER BY m.sent_at DESC, m.id DESC LIMIT 1) AS last_sent_at,
+               (SELECT COUNT(*) FROM messages m WHERE m.team_id = t.id) AS message_count
+        FROM teams t
+        ORDER BY (last_sender = 'team') DESC, last_sent_at DESC
+        """
+    ).fetchall()
+    # Teams with zero messages: last_sent_at is NULL, sorts them to the
+    # bottom regardless of name -- fine, they have nothing to show yet.
+    threads = [r for r in rows if r["message_count"] > 0]
+    return render_template("admin_hints.html", threads=threads)
+
+
+@bp.route("/hints/<int:team_id>", methods=("GET", "POST"))
+@admin_required
+def hint_thread(team_id: int):
+    db = get_db()
+    team = db.execute("SELECT id, name FROM teams WHERE id = ?", (team_id,)).fetchone()
+    if team is None:
+        abort(404)
+
+    if request.method == "POST":
+        body = request.form.get("body", "").strip()
+        if body:
+            db.execute(
+                "INSERT INTO messages (team_id, sender, body) VALUES (?, 'admin', ?)",
+                (team_id, body),
+            )
+            db.commit()
+        return redirect(url_for("admin.hint_thread", team_id=team_id))
+
+    messages = db.execute(
+        "SELECT sender, body, sent_at FROM messages "
+        "WHERE team_id = ? ORDER BY sent_at ASC",
+        (team_id,),
+    ).fetchall()
+    return render_template("admin_hint_thread.html", team=team, messages=messages)
+
+
+@bp.route("/hints/state")
+@admin_required
+def hints_state():
+    """Polled from the admin dashboard/inbox so a new hint request
+    shows up live without a manual refresh."""
+    db = get_db()
+    return jsonify({"waiting_count": _teams_waiting_for_reply(db)})

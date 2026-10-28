@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Ask for a hint{% endblock %}
+{% block content %}
+  <h1>Ask for a hint</h1>
+  <p class="meta">Only your instructor sees this — other teams never
+    see your questions, and you never see theirs.</p>
+
+  {% if error %}<p class="flash-error">{{ error }}</p>{% endif %}
+
+  <div id="chat-thread" class="chat-thread">
+    {% for m in messages %}
+      <div class="chat-bubble {{ 'from-team' if m['sender'] == 'team' else 'from-admin' }}">
+        <div class="chat-meta">{{ 'you' if m['sender'] == 'team' else 'instructor' }} &middot; {{ m['sent_at'] }}</div>
+        <div class="chat-body">{{ m['body'] }}</div>
+      </div>
+    {% else %}
+      <p class="meta">No questions yet — ask below if you're stuck.</p>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <form method="post" class="auth-form">
+      <div class="field">
+        <label for="body">Your question</label>
+        <input id="body" name="body" autocomplete="off" maxlength="2000">
+      </div>
+      <button type="submit" class="btn-primary">Send</button>
+    </form>
+  </div>
+
+  <script src="{{ url_for('static', filename='hints.js') }}"></script>
+{% endblock %}

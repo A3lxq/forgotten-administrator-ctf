@@ -38,6 +38,18 @@ CREATE TABLE IF NOT EXISTS event_state (
     live_winner_team_id INTEGER REFERENCES teams(id),
     final_winner_team_id INTEGER REFERENCES teams(id)
 );
+
+-- Hint requests: team <-> admin only. There is deliberately no concept
+-- of a team-to-team message anywhere in this schema or in any route
+-- that reads it -- every team-facing query in hints.py is hard-scoped
+-- to the logged-in team's own session id, never a client-supplied one.
+CREATE TABLE IF NOT EXISTS messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    team_id INTEGER NOT NULL REFERENCES teams(id),
+    sender TEXT NOT NULL CHECK (sender IN ('team', 'admin')),
+    body TEXT NOT NULL,
+    sent_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 """
 
 
@@ -69,7 +81,8 @@ def reset_db(conn: sqlite3.Connection) -> None:
     columns are foreign keys into teams, so deleting teams first trips
     the FK constraint (PRAGMA foreign_keys = ON in get_db())."""
     conn.executescript(
-        "DELETE FROM event_state; DELETE FROM submissions; DELETE FROM teams;"
+        "DELETE FROM event_state; DELETE FROM messages; "
+        "DELETE FROM submissions; DELETE FROM teams;"
     )
     conn.execute("INSERT INTO event_state (id) VALUES (1)")
     conn.commit()

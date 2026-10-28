@@ -17,6 +17,17 @@
     </div>
   {% endif %}
 
+  <div class="card">
+    <a href="{{ url_for('admin.hints_inbox') }}">Hint requests &rarr;</a>
+    {% if waiting_count > 0 %}
+      <span class="waiting-badge">
+        {{ waiting_count }} team{{ 's' if waiting_count != 1 else '' }} waiting for a reply
+      </span>
+    {% else %}
+      <span class="meta waiting-badge-none">nobody waiting right now</span>
+    {% endif %}
+  </div>
+
   <h2>Teams ({{ teams|length }})</h2>
   <table class="leaderboard">
     <thead>

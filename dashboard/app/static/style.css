@@ -429,3 +429,67 @@ table.leaderboard .score {
   margin-top: 12px;
   margin-bottom: 0;
 }
+
+.waiting-badge {
+  display: inline-block;
+  margin-left: 12px;
+  padding: 3px 12px;
+  background: rgba(232, 121, 249, 0.12);
+  border: 1px solid var(--accent-magenta);
+  color: var(--accent-magenta);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.waiting-badge-none {
+  margin-left: 12px;
+}
+
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.chat-bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.chat-bubble .chat-meta {
+  font-size: 11px;
+  color: var(--fg-muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.chat-bubble .chat-body {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-bubble.from-team {
+  align-self: flex-end;
+  background: rgba(34, 211, 238, 0.08);
+  border-color: var(--accent-cyan);
+}
+
+.chat-bubble.from-admin {
+  align-self: flex-start;
+  background: rgba(57, 255, 20, 0.07);
+  border-color: var(--accent-green);
+}
+
+.preview {
+  color: var(--fg-muted);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
