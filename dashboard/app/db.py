@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS teams (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL,
     pin_hash TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime')),
     hints_last_read_at TEXT
 );
 
@@ -28,13 +28,13 @@ CREATE TABLE IF NOT EXISTS submissions (
     classification TEXT NOT NULL,  -- genuine | decoy
     flag_id TEXT,                   -- e.g. original_flag_3, d2b
     points_awarded INTEGER NOT NULL DEFAULT 0,
-    submitted_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    submitted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime')),
     UNIQUE (team_id, flag_value)
 );
 
 CREATE TABLE IF NOT EXISTS event_state (
     id INTEGER PRIMARY KEY CHECK (id = 1),
-    started_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    started_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime')),
     ended_at TEXT,
     live_winner_team_id INTEGER REFERENCES teams(id),
     final_winner_team_id INTEGER REFERENCES teams(id)
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS messages (
     team_id INTEGER NOT NULL REFERENCES teams(id),
     sender TEXT NOT NULL CHECK (sender IN ('team', 'admin')),
     body TEXT NOT NULL,
-    sent_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    sent_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime'))
 );
 """
 

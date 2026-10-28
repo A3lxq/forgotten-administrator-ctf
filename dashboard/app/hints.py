@@ -47,7 +47,7 @@ def thread():
     # Visiting the page itself is what marks the thread "read" -- the
     # polled /hints/unread endpoint below only ever reports, never marks.
     db.execute(
-        "UPDATE teams SET hints_last_read_at = datetime('now', 'localtime') WHERE id = ?",
+        "UPDATE teams SET hints_last_read_at = strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime') WHERE id = ?",
         (g.team["id"],),
     )
     db.commit()
@@ -73,7 +73,7 @@ def state():
     # hints_last_read_at current so the nav badge (polled from every
     # other page) doesn't also claim there's something unread here.
     db.execute(
-        "UPDATE teams SET hints_last_read_at = datetime('now', 'localtime') WHERE id = ?",
+        "UPDATE teams SET hints_last_read_at = strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime') WHERE id = ?",
         (g.team["id"],),
     )
     db.commit()

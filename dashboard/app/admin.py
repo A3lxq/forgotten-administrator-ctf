@@ -139,7 +139,7 @@ def end_event():
     db = get_db()
     winner_id = _final_winner_with_tiebreak(db)
     db.execute(
-        "UPDATE event_state SET ended_at = datetime('now', 'localtime'), "
+        "UPDATE event_state SET ended_at = strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime'), "
         "final_winner_team_id = ? WHERE id = 1",
         (winner_id,),
     )

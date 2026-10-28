@@ -38,8 +38,18 @@
 
     const now = Date.now();
     const times = allPoints.map((p) => parseTime(p.t));
-    const minT = Math.min(...times);
+    let minT = Math.min(...times);
     const maxT = Math.max(now, Math.max(...times));
+    // Early in an event (or when a team submits several flags in a
+    // quick burst), the real data span can be a few seconds while
+    // "now" is the only thing far to the right -- without a floor,
+    // every real point gets squeezed into a sliver at the left edge
+    // and the chart reads as empty at a glance. Guarantee at least a
+    // few minutes of visible span so early/clustered activity still
+    // has room to be seen, without changing anything once the actual
+    // spread already exceeds it.
+    const MIN_SPAN_MS = 3 * 60 * 1000;
+    if (maxT - minT < MIN_SPAN_MS) minT = maxT - MIN_SPAN_MS;
     const maxScore = Math.max(10, ...allPoints.map((p) => p.score));
 
     const x = (t) => PAD.left + ((t - minT) / Math.max(1, maxT - minT)) * (W - PAD.left - PAD.right);

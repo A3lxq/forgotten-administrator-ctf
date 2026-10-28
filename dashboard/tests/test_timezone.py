@@ -30,7 +30,7 @@ def test_timestamps_use_system_local_time_not_utc(app, client):
 
         local_now = dt.datetime.now()
         utc_now = dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
-        stored_dt = dt.datetime.strptime(stored, "%Y-%m-%d %H:%M:%S")
+        stored_dt = dt.datetime.strptime(stored, "%Y-%m-%d %H:%M:%S.%f")
 
         diff_from_local = abs((stored_dt - local_now).total_seconds())
         diff_from_utc = abs((stored_dt - utc_now).total_seconds())
